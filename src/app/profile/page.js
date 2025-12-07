@@ -5,9 +5,15 @@ import { useState, useEffect } from "react";
 function ProfilePage() {
     // Basic profile states
     const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [skills, setSkills] = useState('');
+    const [languages, setLanguages] = useState('');
     const [location, setLocation] = useState('');
     const [bio, setBio] = useState('');
+    const [linkedin, setLinkedin] = useState('');
+    const [github, setGithub] = useState('');
+    const [portfolio, setPortfolio] = useState('');
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
 
@@ -29,6 +35,21 @@ function ProfilePage() {
     const [newField, setNewField] = useState('');
     const [newGradYear, setNewGradYear] = useState('');
 
+    // Projects states
+    const [projects, setProjects] = useState([]);
+    const [showProjectForm, setShowProjectForm] = useState(false);
+    const [newProjectTitle, setNewProjectTitle] = useState('');
+    const [newProjectDesc, setNewProjectDesc] = useState('');
+    const [newProjectTech, setNewProjectTech] = useState('');
+    const [newProjectUrl, setNewProjectUrl] = useState('');
+
+    // Certifications states
+    const [certifications, setCertifications] = useState([]);
+    const [showCertForm, setShowCertForm] = useState(false);
+    const [newCertName, setNewCertName] = useState('');
+    const [newCertIssuer, setNewCertIssuer] = useState('');
+    const [newCertDate, setNewCertDate] = useState('');
+
     useEffect(() => {
         loadAllData();
     }, []);
@@ -47,9 +68,15 @@ function ProfilePage() {
 
             if (profile) {
                 setName(profile.full_name || '');
+                setEmail(profile.email || '');
+                setPhone(profile.phone || '');
                 setSkills(profile.skills ? profile.skills.join(', ') : '');
+                setLanguages(profile.languages ? profile.languages.join(', ') : '');
                 setLocation(profile.location || '');
                 setBio(profile.bio || '');
+                setLinkedin(profile.linkedin_url || '');
+                setGithub(profile.github_url || '');
+                setPortfolio(profile.portfolio_url || '');
             }
 
             // Load experiences
@@ -71,6 +98,22 @@ function ProfilePage() {
 
             console.log('Education loaded:', edu, 'Error:', eduError);
             setEducation(edu || []);
+
+            // Load projects
+            const { data: proj } = await supabase
+                .from('projects')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+            setProjects(proj || []);
+
+            // Load certifications
+            const { data: certs } = await supabase
+                .from('certifications')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('issue_date', { ascending: false });
+            setCertifications(certs || []);
         }
         setLoading(false);
     }
@@ -81,14 +124,21 @@ function ProfilePage() {
         const { data: { user } } = await supabase.auth.getUser();
 
         const skillsArray = skills.split(',').map(s => s.trim()).filter(s => s);
+        const languagesArray = languages.split(',').map(l => l.trim()).filter(l => l);
 
         const { error } = await supabase
             .from('profiles')
             .update({
                 full_name: name,
+                email: email,
+                phone: phone,
                 skills: skillsArray,
+                languages: languagesArray,
                 location: location,
-                bio: bio
+                bio: bio,
+                linkedin_url: linkedin,
+                github_url: github,
+                portfolio_url: portfolio
             })
             .eq('user_id', user.id);
 
@@ -194,6 +244,88 @@ function ProfilePage() {
         await loadAllData();
     };
 
+    // Project handlers
+    const handleAddProject = async () => {
+        if (!newProjectTitle) {
+            alert('Please enter a project title');
+            return;
+        }
+
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const techArray = newProjectTech.split(',').map(t => t.trim()).filter(t => t);
+
+        const { error } = await supabase.from('projects').insert({
+            user_id: user.id,
+            title: newProjectTitle,
+            description: newProjectDesc,
+            tech_stack: techArray,
+            url: newProjectUrl
+        });
+
+        if (error) {
+            console.error('Error adding project:', error);
+            alert('Error adding project');
+            return;
+        }
+
+        setNewProjectTitle('');
+        setNewProjectDesc('');
+        setNewProjectTech('');
+        setNewProjectUrl('');
+        setShowProjectForm(false);
+        await loadAllData();
+    };
+
+    const handleDeleteProject = async (id) => {
+        const supabase = createClient();
+        const { error } = await supabase.from('projects').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting project:', error);
+        }
+        await loadAllData();
+    };
+
+    // Certification handlers
+    const handleAddCertification = async () => {
+        if (!newCertName) {
+            alert('Please enter a certification name');
+            return;
+        }
+
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { error } = await supabase.from('certifications').insert({
+            user_id: user.id,
+            name: newCertName,
+            issuer: newCertIssuer,
+            issue_date: newCertDate || null
+        });
+
+        if (error) {
+            console.error('Error adding certification:', error);
+            alert('Error adding certification');
+            return;
+        }
+
+        setNewCertName('');
+        setNewCertIssuer('');
+        setNewCertDate('');
+        setShowCertForm(false);
+        await loadAllData();
+    };
+
+    const handleDeleteCertification = async (id) => {
+        const supabase = createClient();
+        const { error } = await supabase.from('certifications').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting certification:', error);
+        }
+        await loadAllData();
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-haze flex items-center justify-center">
@@ -247,6 +379,20 @@ function ProfilePage() {
 
                         <div>
                             <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
+                                LANGUAGES
+                            </label>
+                            <input
+                                type="text"
+                                value={languages}
+                                onChange={(e) => setLanguages(e.target.value)}
+                                className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                                placeholder="French (Native), English (Fluent), Spanish (Basic)"
+                            />
+                            <p className="text-xs text-[var(--foreground-dim)] mt-1">e.g. French (Native), English (C1)</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
                                 LOCATION
                             </label>
                             <input
@@ -269,6 +415,70 @@ function ProfilePage() {
                                 className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] resize-none"
                                 placeholder="Tell us about yourself..."
                             />
+                        </div>
+
+                        {/* Contact Information */}
+                        <div className="border-t border-white/10 pt-4 mt-4">
+                            <p className="text-sm font-medium text-[var(--foreground-muted)] mb-3 tracking-wide">CONTACT INFO</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                                        placeholder="you@email.com"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">Phone</label>
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                                        placeholder="+33 6 12 34 56 78"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Social Links */}
+                        <div className="border-t border-white/10 pt-4 mt-4">
+                            <p className="text-sm font-medium text-[var(--foreground-muted)] mb-3 tracking-wide">SOCIAL LINKS</p>
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">LinkedIn URL</label>
+                                    <input
+                                        type="url"
+                                        value={linkedin}
+                                        onChange={(e) => setLinkedin(e.target.value)}
+                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                                        placeholder="linkedin.com/in/yourname"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">GitHub URL</label>
+                                    <input
+                                        type="url"
+                                        value={github}
+                                        onChange={(e) => setGithub(e.target.value)}
+                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                                        placeholder="github.com/yourname"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">Portfolio URL</label>
+                                    <input
+                                        type="url"
+                                        value={portfolio}
+                                        onChange={(e) => setPortfolio(e.target.value)}
+                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                                        placeholder="yourportfolio.com"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <button
@@ -484,6 +694,153 @@ function ProfilePage() {
                                 className="w-full py-2 bg-[var(--primary)] text-black font-medium rounded-xl hover:glow-primary transition"
                             >
                                 Save Education
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Projects Section */}
+                <div className="glass gradient-border rounded-2xl p-6 mb-6">
+                    <h2 className="text-lg font-bold text-white mb-4">🚀 Projects</h2>
+
+                    {projects.length > 0 ? (
+                        <div className="space-y-3 mb-4">
+                            {projects.map(proj => (
+                                <div key={proj.id} className="relative group bg-[var(--surface)] rounded-xl p-4">
+                                    <button
+                                        onClick={() => handleDeleteProject(proj.id)}
+                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xl transition"
+                                    >×</button>
+                                    <p className="font-semibold text-white">{proj.title}</p>
+                                    {proj.description && (
+                                        <p className="text-sm text-[var(--foreground-dim)] mt-1">{proj.description}</p>
+                                    )}
+                                    {proj.tech_stack && proj.tech_stack.length > 0 && (
+                                        <p className="text-xs text-[var(--primary)] mt-2">
+                                            {proj.tech_stack.join(' • ')}
+                                        </p>
+                                    )}
+                                    {proj.url && (
+                                        <a href={proj.url} target="_blank" className="text-xs text-blue-400 mt-1 block">
+                                            🔗 {proj.url}
+                                        </a>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-[var(--foreground-dim)] text-sm mb-4">No projects added yet</p>
+                    )}
+
+                    <button
+                        onClick={() => setShowProjectForm(!showProjectForm)}
+                        className="text-[var(--primary)] text-sm font-medium hover:underline"
+                    >
+                        {showProjectForm ? '− Cancel' : '+ Add Project'}
+                    </button>
+
+                    {showProjectForm && (
+                        <div className="mt-4 space-y-3">
+                            <input
+                                type="text"
+                                value={newProjectTitle}
+                                onChange={(e) => setNewProjectTitle(e.target.value)}
+                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
+                                placeholder="Project Title *"
+                            />
+                            <textarea
+                                value={newProjectDesc}
+                                onChange={(e) => setNewProjectDesc(e.target.value)}
+                                rows={2}
+                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] resize-none"
+                                placeholder="Brief description..."
+                            />
+                            <input
+                                type="text"
+                                value={newProjectTech}
+                                onChange={(e) => setNewProjectTech(e.target.value)}
+                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
+                                placeholder="Tech Stack (comma separated): React, Node.js, MongoDB"
+                            />
+                            <input
+                                type="url"
+                                value={newProjectUrl}
+                                onChange={(e) => setNewProjectUrl(e.target.value)}
+                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
+                                placeholder="Project URL (optional)"
+                            />
+                            <button
+                                onClick={handleAddProject}
+                                className="w-full py-2 bg-[var(--primary)] text-black font-medium rounded-xl hover:glow-primary transition"
+                            >
+                                Save Project
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Certifications Section */}
+                <div className="glass gradient-border rounded-2xl p-6 mb-6">
+                    <h2 className="text-lg font-bold text-white mb-4">🏆 Certifications</h2>
+
+                    {certifications.length > 0 ? (
+                        <div className="space-y-3 mb-4">
+                            {certifications.map(cert => (
+                                <div key={cert.id} className="relative group bg-[var(--surface)] rounded-xl p-4">
+                                    <button
+                                        onClick={() => handleDeleteCertification(cert.id)}
+                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xl transition"
+                                    >×</button>
+                                    <p className="font-semibold text-white">{cert.name}</p>
+                                    {cert.issuer && (
+                                        <p className="text-sm text-[var(--primary)]">{cert.issuer}</p>
+                                    )}
+                                    {cert.issue_date && (
+                                        <p className="text-xs text-[var(--foreground-dim)] mt-1">
+                                            Issued: {new Date(cert.issue_date).toLocaleDateString()}
+                                        </p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-[var(--foreground-dim)] text-sm mb-4">No certifications added yet</p>
+                    )}
+
+                    <button
+                        onClick={() => setShowCertForm(!showCertForm)}
+                        className="text-[var(--primary)] text-sm font-medium hover:underline"
+                    >
+                        {showCertForm ? '− Cancel' : '+ Add Certification'}
+                    </button>
+
+                    {showCertForm && (
+                        <div className="mt-4 space-y-3">
+                            <input
+                                type="text"
+                                value={newCertName}
+                                onChange={(e) => setNewCertName(e.target.value)}
+                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
+                                placeholder="Certification Name *"
+                            />
+                            <input
+                                type="text"
+                                value={newCertIssuer}
+                                onChange={(e) => setNewCertIssuer(e.target.value)}
+                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
+                                placeholder="Issuing Organization (AWS, Google, etc.)"
+                            />
+                            <input
+                                type="date"
+                                value={newCertDate}
+                                onChange={(e) => setNewCertDate(e.target.value)}
+                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm"
+                            />
+                            <button
+                                onClick={handleAddCertification}
+                                className="w-full py-2 bg-[var(--primary)] text-black font-medium rounded-xl hover:glow-primary transition"
+                            >
+                                Save Certification
                             </button>
                         </div>
                     )}

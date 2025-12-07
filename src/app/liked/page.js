@@ -1,9 +1,34 @@
 import createClient from "@/lib/supabase/server";
+import CVDownloadButton from "@/components/CVDownloadButton";
 
 async function LikedPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const { data: jobLiked, error } = await supabase.from('applications').select('*,jobs(*)').eq('user_id', user.id);
+
+    // Fetch liked jobs with job details
+    const { data: jobLiked } = await supabase
+        .from('applications')
+        .select('*, jobs(*)')
+        .eq('user_id', user.id);
+
+    // Fetch user profile for all contact info
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, location, email, phone, linkedin_url, github_url, portfolio_url')
+        .eq('user_id', user.id)
+        .single();
+
+    // Fetch generated CVs
+    const { data: generatedCVs } = await supabase
+        .from('generated_cvs')
+        .select('*')
+        .eq('user_id', user.id);
+
+    // Create a map of job_id to CV content
+    const cvMap = {};
+    generatedCVs?.forEach(cv => {
+        cvMap[cv.job_id] = cv.cv_content;
+    });
 
     if (!jobLiked || jobLiked.length === 0) {
         return (
@@ -44,14 +69,35 @@ async function LikedPage() {
                 </p>
 
                 <div className="space-y-4">
-                    {jobLiked.map(job => (
-                        <div key={job.id} className="glass rounded-xl p-5 hover:bg-[var(--surface-hover)] transition">
-                            <h2 className="text-lg font-bold text-white">{job.jobs.title}</h2>
-                            <p className="text-[var(--primary)]">{job.jobs.company_name}</p>
-                            <p className="text-[var(--foreground-dim)] text-sm mt-1">📍 {job.jobs.location_city}</p>
-                            <span className="inline-block mt-3 px-3 py-1 bg-[var(--secondary)]/20 text-[var(--secondary)] rounded-full text-xs tracking-wide">
-                                ❤️ Applied
-                            </span>
+                    {jobLiked.map(app => (
+                        <div key={app.id} className="glass rounded-xl p-5">
+                            <h2 className="text-lg font-bold text-white">{app.jobs.title}</h2>
+                            <p className="text-[var(--primary)]">{app.jobs.company_name}</p>
+                            <p className="text-[var(--foreground-dim)] text-sm mt-1">📍 {app.jobs.location_city}</p>
+
+                            <div className="flex items-center gap-3 mt-3">
+                                <span className="px-3 py-1 bg-[var(--secondary)]/20 text-[var(--secondary)] rounded-full text-xs tracking-wide">
+                                    ❤️ Applied
+                                </span>
+
+                                {cvMap[app.job_id] ? (
+                                    <CVDownloadButton
+                                        cvContent={cvMap[app.job_id]}
+                                        jobTitle={app.jobs.title}
+                                        profileName={profile?.full_name}
+                                        location={profile?.location}
+                                        email={profile?.email}
+                                        phone={profile?.phone}
+                                        linkedin={profile?.linkedin_url}
+                                        github={profile?.github_url}
+                                        portfolio={profile?.portfolio_url}
+                                    />
+                                ) : (
+                                    <span className="text-xs text-[var(--foreground-dim)]">
+                                        No CV generated
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>

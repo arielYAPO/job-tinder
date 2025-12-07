@@ -1,10 +1,14 @@
 'use client'
 import createClient from "@/lib/supabase/client";
+import { useState } from "react";
 
 function JobCard({ job, onSwipe }) {
     const supabase = createClient();
+    const [loading, setLoading] = useState(false);
 
     const handleLike = async () => {
+        setLoading(true);  // Start loading
+
         const { data: { user } } = await supabase.auth.getUser();
         await supabase.from('swipes').insert({
             user_id: user.id,
@@ -12,11 +16,23 @@ function JobCard({ job, onSwipe }) {
             action: 'like'
         })
 
+        // Generate CV
+        await fetch('/api/generate-cv', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: user.id,
+                job_id: job.id
+            })
+        });
+
         await supabase.from('applications').insert({
             user_id: user.id,
             job_id: job.id,
             status: 'draft'
         })
+
+        setLoading(false);  // Stop loading
         if (onSwipe) onSwipe();
     };
 
@@ -75,6 +91,7 @@ function JobCard({ job, onSwipe }) {
                     </button>
                     <button
                         onClick={handleLike}
+                        disabled={loading}
                         className="flex-1 py-4 bg-[var(--secondary)] text-white rounded-xl hover:glow-secondary transition-all active:scale-[0.98] font-semibold"
                     >
                         ❤️ Like

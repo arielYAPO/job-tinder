@@ -11,15 +11,32 @@ function JobSwiper({ jobs }) {
         setCurrentIndex(currentIndex + 1);
     }
 
-    async function handleReset() {
+    // Reset only PASSED jobs (production behavior)
+    async function handleResetPassed() {
         setIsResetting(true);
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
-        // Delete only PASS swipes (not LIKE - those are already applied)
         await supabase.from('swipes').delete().eq('user_id', user.id).eq('action', 'pass');
 
-        // Refresh the page to reload jobs
+        window.location.reload();
+    }
+
+    // Reset ALL jobs including likes (for testing)
+    async function handleResetAll() {
+        setIsResetting(true);
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Delete ALL swipes (both like and pass)
+        await supabase.from('swipes').delete().eq('user_id', user.id);
+
+        // Delete all applications
+        await supabase.from('applications').delete().eq('user_id', user.id);
+
+        // Delete all generated CVs
+        await supabase.from('generated_cvs').delete().eq('user_id', user.id);
+
         window.location.reload();
     }
 
@@ -29,13 +46,24 @@ function JobSwiper({ jobs }) {
                 <p className="text-4xl mb-3">🎉</p>
                 <p className="text-xl font-bold text-white">No more jobs!</p>
                 <p className="text-[var(--foreground-muted)] mt-2">You've seen all available positions.</p>
-                <button
-                    onClick={handleReset}
-                    disabled={isResetting}
-                    className="mt-6 px-6 py-3 bg-[var(--primary)] text-black font-semibold rounded-xl hover:glow-primary transition-all disabled:opacity-50 active:scale-[0.98]"
-                >
-                    {isResetting ? '🔄 Resetting...' : '🔄 See passed jobs again'}
-                </button>
+
+                <div className="flex flex-col gap-3 mt-6">
+                    <button
+                        onClick={handleResetPassed}
+                        disabled={isResetting}
+                        className="px-6 py-3 bg-[var(--primary)] text-black font-semibold rounded-xl hover:glow-primary transition-all disabled:opacity-50 active:scale-[0.98]"
+                    >
+                        {isResetting ? '🔄 Resetting...' : '🔄 See passed jobs again'}
+                    </button>
+
+                    <button
+                        onClick={handleResetAll}
+                        disabled={isResetting}
+                        className="px-6 py-3 bg-[var(--danger)] text-white font-semibold rounded-xl hover:opacity-80 transition-all disabled:opacity-50 active:scale-[0.98] text-sm"
+                    >
+                        🧪 Reset ALL (Testing Only)
+                    </button>
+                </div>
             </div>
         )
     }

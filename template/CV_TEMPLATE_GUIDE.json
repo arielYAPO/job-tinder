@@ -1,0 +1,361 @@
+{
+    "resumeTemplateSet": {
+        "version": "1.0",
+        "purpose": "Generate polished, readable resumes with optional ATS-first mode. Output-friendly for HTML->PDF and DOCX.",
+        "global": {
+            "page": {
+                "size": "A4",
+                "orientation": "portrait",
+                "printSafe": true,
+                "margins": {
+                    "top_mm": 16,
+                    "right_mm": 16,
+                    "bottom_mm": 16,
+                    "left_mm": 16
+                }
+            },
+            "grid": {
+                "baseline_px": 4,
+                "contentMaxWidth_px": 740,
+                "gapScale_px": [
+                    4,
+                    8,
+                    12,
+                    16,
+                    20,
+                    24,
+                    32
+                ]
+            },
+            "typography": {
+                "fontStackPrimary": [
+                    "Inter",
+                    "Source Sans 3",
+                    "Helvetica",
+                    "Arial",
+                    "system-ui",
+                    "sans-serif"
+                ],
+                "fontStackSecondary": [
+                    "Inter",
+                    "Source Sans 3",
+                    "Helvetica",
+                    "Arial",
+                    "system-ui",
+                    "sans-serif"
+                ],
+                "weights": {
+                    "regular": 400,
+                    "medium": 500,
+                    "semibold": 600,
+                    "bold": 700
+                },
+                "scale": {
+                    "name": {
+                        "size_pt": 18,
+                        "weight": 700,
+                        "tracking_em": -0.01
+                    },
+                    "title": {
+                        "size_pt": 11.5,
+                        "weight": 600
+                    },
+                    "sectionHeading": {
+                        "size_pt": 10.5,
+                        "weight": 700,
+                        "uppercase": true,
+                        "tracking_em": 0.06
+                    },
+                    "body": {
+                        "size_pt": 10,
+                        "weight": 400
+                    },
+                    "meta": {
+                        "size_pt": 9,
+                        "weight": 400
+                    },
+                    "caption": {
+                        "size_pt": 8.5,
+                        "weight": 400
+                    }
+                },
+                "lineHeights": {
+                    "tight": 1.15,
+                    "normal": 1.35,
+                    "relaxed": 1.5
+                }
+            },
+            "colorSystem": {
+                "mode": "light",
+                "roles": {
+                    "textPrimary": "near-black",
+                    "textSecondary": "cool-gray-700",
+                    "muted": "cool-gray-500",
+                    "accent": "deep-neutral-or-single-brand-color",
+                    "divider": "cool-gray-200",
+                    "panelBg": "cool-gray-50"
+                },
+                "rules": [
+                    "Prefer 1 accent color maximum.",
+                    "Avoid neon for ATS-first outputs.",
+                    "Allow neon/glow only in portfolio-style resumes."
+                ]
+            },
+            "contentRules": {
+                "bulletStyle": "short-impact",
+                "bulletMaxLines": 2,
+                "verbTense": "past-for-previous, present-for-current",
+                "numbersFirst": true,
+                "avoidFluff": true
+            }
+        },
+        "templates": [
+            {
+                "id": "classic_single_column_ats",
+                "label": "Classic Single Column (ATS-first)",
+                "atsOptimized": true,
+                "useCase": [
+                    "France + EU corporate",
+                    "Large companies with strict ATS parsing",
+                    "Engineering/tech/business general"
+                ],
+                "layout": {
+                    "type": "singleColumn",
+                    "sectionsOrder": [
+                        "header",
+                        "summary",
+                        "keySkills",
+                        "experience",
+                        "projects_optional",
+                        "education",
+                        "certifications_optional",
+                        "languages_optional",
+                        "additional_optional"
+                    ],
+                    "sectionSpacing_px": 16,
+                    "subsectionSpacing_px": 8
+                },
+                "header": {
+                    "alignment": "centered_or_left",
+                    "nameStyle": "name",
+                    "roleStyle": "title",
+                    "contactLine": {
+                        "format": "inline-separated",
+                        "separators": [
+                            "|",
+                            "•"
+                        ],
+                        "allowLinks": true,
+                        "maxItems": 5
+                    }
+                },
+                "sectionStyles": {
+                    "heading": {
+                        "styleRef": "sectionHeading",
+                        "divider": {
+                            "type": "thinLine",
+                            "position": "belowHeading",
+                            "thickness_px": 1
+                        }
+                    },
+                    "body": {
+                        "styleRef": "body"
+                    }
+                },
+                "components": {
+                    "summary": {
+                        "maxLines": 4,
+                        "tone": "professional-direct",
+                        "includeSpecializations": true
+                    },
+                    "keySkills": {
+                        "layout": "multiColumnText",
+                        "columns": 2,
+                        "itemType": "short-phrases",
+                        "noIcons": true,
+                        "noProgressBars": true
+                    },
+                    "experienceItem": {
+                        "headerRow": {
+                            "left": [
+                                "jobTitle",
+                                "company"
+                            ],
+                            "right": [
+                                "dateRange",
+                                "location_optional"
+                            ],
+                            "layout": "sameLine"
+                        },
+                        "bullets": {
+                            "min": 3,
+                            "max": 6,
+                            "pattern": "action + scope + tool/skill + measurable result"
+                        }
+                    },
+                    "educationItem": {
+                        "headerRow": {
+                            "left": [
+                                "degree",
+                                "school"
+                            ],
+                            "right": [
+                                "dateRange",
+                                "location_optional"
+                            ]
+                        },
+                        "detailsOptional": [
+                            "relevantCourses",
+                            "rank",
+                            "thesis"
+                        ]
+                    }
+                },
+                "atsConstraints": {
+                    "avoid": [
+                        "tables",
+                        "text-in-images",
+                        "two-column body",
+                        "complex icons",
+                        "progress bars",
+                        "excessive graphics"
+                    ],
+                    "allowed": [
+                        "simple dividers",
+                        "bold headings",
+                        "clean bullets",
+                        "standard section names"
+                    ],
+                    "recommendedSectionNames": [
+                        "Professional Summary",
+                        "Skills",
+                        "Professional Experience",
+                        "Projects",
+                        "Education",
+                        "Certifications",
+                        "Languages"
+                    ]
+                }
+            },
+            {
+                "id": "modern_two_column_photo",
+                "label": "Modern Two Column with Photo (Human-first)",
+                "atsOptimized": "medium",
+                "useCase": [
+                    "Startups",
+                    "Design-aware tech teams",
+                    "When a human will read first"
+                ],
+                "layout": {
+                    "type": "twoColumn",
+                    "ratio": {
+                        "left": 0.32,
+                        "right": 0.68
+                    },
+                    "leftColumnRole": "identity-and-skills",
+                    "rightColumnRole": "story-and-impact",
+                    "leftPanelStyle": {
+                        "backgroundRole": "panelBg",
+                        "padding_px": 16,
+                        "divider": "none"
+                    }
+                },
+                "header": {
+                    "photo": {
+                        "shape": "square_or_soft-rounded",
+                        "size_px": 90,
+                        "placement": "top-left-column",
+                        "border": "none",
+                        "atsFallback": "auto-remove-in-ATS-export"
+                    },
+                    "namePlacement": "top-right-column-or-top-full-width",
+                    "contactBlock": {
+                        "layout": "stacked",
+                        "allowIcons": true,
+                        "iconStyle": "minimal-line",
+                        "maxItems": 6
+                    }
+                },
+                "leftColumnSections": [
+                    "profileSnapshot",
+                    "technicalSkills",
+                    "tools",
+                    "languages",
+                    "interests_optional"
+                ],
+                "rightColumnSections": [
+                    "summary",
+                    "experience",
+                    "projects",
+                    "education"
+                ],
+                "components": {
+                    "skillsBlock": {
+                        "grouping": "by-theme",
+                        "itemType": "keywords",
+                        "maxPerGroup": 8,
+                        "allowBadges": true,
+                        "badgeStyle": {
+                            "shape": "pill",
+                            "backgroundRole": "panelBg",
+                            "textRole": "textSecondary"
+                        }
+                    },
+                    "experienceItem": {
+                        "emphasis": "impact",
+                        "bullets": {
+                            "min": 2,
+                            "max": 5,
+                            "preferMetrics": true
+                        }
+                    },
+                    "projectsItem": {
+                        "format": "title + 1-line context + 2 bullets",
+                        "includeStackLine": true
+                    }
+                },
+                "styleFlavor": {
+                    "accentUsage": "subtle",
+                    "allowedVisuals": [
+                        "soft panels",
+                        "light iconography",
+                        "small badges"
+                    ],
+                    "avoid": [
+                        "heavy gradients",
+                        "strong glows",
+                        "over-saturated neon"
+                    ]
+                },
+                "exportModes": {
+                    "humanPdf": true,
+                    "atsPdf": {
+                        "autoTransform": [
+                            "flatten-to-single-column",
+                            "remove-photo",
+                            "remove-icons",
+                            "convert-badges-to-plain-text"
+                        ]
+                    }
+                }
+            }
+        ],
+        "generationHintsForAI": {
+            "inputStrategy": [
+                "Prefer structured fields (name, role, skills[], experience[], projects[], education[]) as source of truth.",
+                "If a user uploads a CV PDF/image, run OCR + section inference, then map to the structured schema."
+            ],
+            "matchingStrategy": [
+                "Extract job requirements -> normalize to skill taxonomy.",
+                "Rewrite summary + top 6-10 skills to mirror job wording without lying.",
+                "Reorder bullet points to put the most job-relevant impact first."
+            ],
+            "qualityChecks": [
+                "No missing dates for Experience/Education unless explicitly unknown.",
+                "No paragraph longer than 5 lines.",
+                "At least 1 measurable outcome per recent role if possible.",
+                "Keep total length 1 page for < 5 years experience, else 1-2 pages."
+            ]
+        }
+    }
+}
