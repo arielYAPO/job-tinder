@@ -1,8 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Background Colors */
+  --background: #0A0A0F;
+  --background-haze: #0D0D15;
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+
+  /* Text Colors */
+  --foreground: #EDEDED;
+  --foreground-muted: #9CA3AF;
+  --foreground-dim: #6B7280;
+
+  /* Primary Accent - Cyan */
+  --primary: #00D9FF;
+  --primary-glow: rgba(0, 217, 255, 0.4);
+
+  /* Secondary Accent - Pink */
+  --secondary: #FF00AA;
+  --secondary-glow: rgba(255, 0, 170, 0.4);
+
+  /* Semantic */
+  --success: #10B981;
+  --danger: #EF4444;
 }
 
 @theme inline {
@@ -12,15 +32,77 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Glass Surface */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass:hover {
+  background: var(--surface-hover);
+}
+
+/* Gradient Borders */
+.gradient-border {
+  position: relative;
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Glow Effects */
+.glow-primary {
+  box-shadow: 0 0 20px var(--primary-glow), 0 0 40px rgba(0, 217, 255, 0.2);
+}
+
+.glow-secondary {
+  box-shadow: 0 0 20px var(--secondary-glow), 0 0 40px rgba(255, 0, 170, 0.2);
+}
+
+/* Input Focus Glow */
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* Button Transitions */
+button,
+a {
+  transition: all 0.2s ease;
+}
+
+/* Neon Text */
+.text-neon {
+  color: var(--primary);
+  text-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* Background Haze */
+.bg-haze {
+  background: radial-gradient(ellipse at top, rgba(0, 217, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(255, 0, 170, 0.03) 0%, transparent 50%),
+    var(--background);
 }

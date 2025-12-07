@@ -25,14 +25,14 @@ function JobSwiper({ jobs }) {
 
     if (currentIndex >= jobs.length) {
         return (
-            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-                <p className="text-2xl mb-2">🎉</p>
-                <p className="text-xl font-semibold text-gray-800">No more jobs!</p>
-                <p className="text-gray-600 mt-2">You've seen all available positions.</p>
+            <div className="glass gradient-border rounded-2xl p-8 text-center">
+                <p className="text-4xl mb-3">🎉</p>
+                <p className="text-xl font-bold text-white">No more jobs!</p>
+                <p className="text-[var(--foreground-muted)] mt-2">You've seen all available positions.</p>
                 <button
                     onClick={handleReset}
                     disabled={isResetting}
-                    className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold disabled:opacity-50"
+                    className="mt-6 px-6 py-3 bg-[var(--primary)] text-black font-semibold rounded-xl hover:glow-primary transition-all disabled:opacity-50 active:scale-[0.98]"
                 >
                     {isResetting ? '🔄 Resetting...' : '🔄 See passed jobs again'}
                 </button>
@@ -43,7 +43,7 @@ function JobSwiper({ jobs }) {
     const currentJob = jobs[currentIndex];
     return (
         <div>
-            <p className="text-sm text-gray-500 text-center mb-4">
+            <p className="text-sm text-[var(--foreground-dim)] text-center mb-4 tracking-wide">
                 {currentIndex + 1} of {jobs.length} jobs
             </p>
             <JobCard job={currentJob} onSwipe={handleSwipe} />

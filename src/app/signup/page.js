@@ -33,51 +33,74 @@ function Signup() {
             });
             router.push('/jobs');
         }
-
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">Sign Up</h1>
-                <form onSubmit={handleSignup} className="space-y-4">
-                    <input
-                        type="text"
-                        placeholder="Name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+        <div className="min-h-screen bg-haze flex items-center justify-center px-4">
+            <div className="glass gradient-border rounded-2xl p-8 w-full max-w-md">
+                <h1 className="text-3xl font-bold text-center mb-2 text-white">
+                    Join <span className="text-neon">JobTinder</span>
+                </h1>
+                <p className="text-center text-[var(--foreground-muted)] mb-8">Find your dream job</p>
+
+                <form onSubmit={handleSignup} className="space-y-5">
+                    <div>
+                        <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
+                            NAME
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Your name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
+                            EMAIL
+                        </label>
+                        <input
+                            type="email"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
+                            PASSWORD
+                        </label>
+                        <input
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                        />
+                    </div>
                     <button
                         type="submit"
-                        className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                        className="w-full py-3 bg-[var(--primary)] text-black font-semibold rounded-xl hover:glow-primary transition-all active:scale-[0.98]"
                     >
-                        Sign Up
+                        Create Account
                     </button>
                 </form>
-                {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
-                <p className="mt-4 text-center text-gray-600">
-                    Already have an account? <a href="/login" className="text-blue-500 hover:underline">Login</a>
+
+                {error && (
+                    <p className="mt-4 text-[var(--danger)] text-center text-sm">{error}</p>
+                )}
+
+                <p className="mt-6 text-center text-[var(--foreground-muted)] text-sm">
+                    Already have an account?{' '}
+                    <a href="/login" className="text-[var(--primary)] hover:underline">
+                        Login
+                    </a>
                 </p>
             </div>
         </div>
     )
-
-
-
 }
+
 export default Signup;
