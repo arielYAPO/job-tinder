@@ -1,6 +1,8 @@
 'use client'
 import createClient from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
+import { User, Mail, Phone, MapPin, Linkedin, Github, Globe, Save, Briefcase, GraduationCap, Rocket, Award, Plus, Trash2, X, ChevronLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function ProfilePage() {
     // Basic profile states
@@ -347,504 +349,765 @@ function ProfilePage() {
                 </div>
 
                 {/* Basic Info Card */}
-                <div className="glass gradient-border rounded-2xl p-6 mb-6">
-                    <h2 className="text-lg font-bold text-white mb-4">Basic Info</h2>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
-                                FULL NAME
-                            </label>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                placeholder="Your name"
-                            />
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass gradient-border rounded-3xl p-8 mb-8 relative overflow-hidden"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-[var(--secondary)]/5 pointer-events-none" />
+
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                            <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
+                                <User className="w-6 h-6 text-[var(--primary)]" />
+                            </div>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Basic Info</h2>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
-                                SKILLS
-                            </label>
-                            <input
-                                type="text"
-                                value={skills}
-                                onChange={(e) => setSkills(e.target.value)}
-                                className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                placeholder="React, JavaScript, Python"
-                            />
-                            <p className="text-xs text-[var(--foreground-dim)] mt-1">Separate with commas</p>
-                        </div>
+                        <div className="grid gap-6">
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
+                                    Full Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full px-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none"
+                                    placeholder="Your name"
+                                />
+                            </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
-                                LANGUAGES
-                            </label>
-                            <input
-                                type="text"
-                                value={languages}
-                                onChange={(e) => setLanguages(e.target.value)}
-                                className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                placeholder="French (Native), English (Fluent), Spanish (Basic)"
-                            />
-                            <p className="text-xs text-[var(--foreground-dim)] mt-1">e.g. French (Native), English (C1)</p>
-                        </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
+                                    Skills
+                                </label>
+                                <input
+                                    type="text"
+                                    value={skills}
+                                    onChange={(e) => setSkills(e.target.value)}
+                                    className="w-full px-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none"
+                                    placeholder="React, JavaScript, Python"
+                                />
+                                <p className="text-xs text-[var(--foreground-dim)] mt-2 ml-1">Separate with commas</p>
+                            </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
-                                LOCATION
-                            </label>
-                            <input
-                                type="text"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                placeholder="Paris, France"
-                            />
-                        </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
+                                    Languages
+                                </label>
+                                <input
+                                    type="text"
+                                    value={languages}
+                                    onChange={(e) => setLanguages(e.target.value)}
+                                    className="w-full px-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none"
+                                    placeholder="French (Native), English (Fluent), Spanish (Basic)"
+                                />
+                                <p className="text-xs text-[var(--foreground-dim)] mt-2 ml-1">e.g. French (Native), English (C1)</p>
+                            </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--foreground-muted)] mb-2 tracking-wide">
-                                BIO
-                            </label>
-                            <textarea
-                                value={bio}
-                                onChange={(e) => setBio(e.target.value)}
-                                rows={3}
-                                className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] resize-none"
-                                placeholder="Tell us about yourself..."
-                            />
-                        </div>
-
-                        {/* Contact Information */}
-                        <div className="border-t border-white/10 pt-4 mt-4">
-                            <p className="text-sm font-medium text-[var(--foreground-muted)] mb-3 tracking-wide">CONTACT INFO</p>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">Email</label>
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
+                                    Location
+                                </label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--foreground-dim)]" />
                                     <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                        placeholder="you@email.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">Phone</label>
-                                    <input
-                                        type="tel"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                        placeholder="+33 6 12 34 56 78"
+                                        type="text"
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                        className="w-full pl-12 pr-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none"
+                                        placeholder="Paris, France"
                                     />
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Social Links */}
-                        <div className="border-t border-white/10 pt-4 mt-4">
-                            <p className="text-sm font-medium text-[var(--foreground-muted)] mb-3 tracking-wide">SOCIAL LINKS</p>
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">LinkedIn URL</label>
-                                    <input
-                                        type="url"
-                                        value={linkedin}
-                                        onChange={(e) => setLinkedin(e.target.value)}
-                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                        placeholder="linkedin.com/in/yourname"
-                                    />
+                            <div>
+                                <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
+                                    Bio
+                                </label>
+                                <textarea
+                                    value={bio}
+                                    onChange={(e) => setBio(e.target.value)}
+                                    rows={3}
+                                    className="w-full px-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none resize-none"
+                                    placeholder="Tell us about yourself..."
+                                />
+                            </div>
+
+                            {/* Contact Information */}
+                            <div className="border-t border-white/5 pt-6 mt-2">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Mail className="w-4 h-4 text-[var(--secondary)]" />
+                                    <p className="text-sm font-semibold text-[var(--foreground-muted)] tracking-wide">CONTACT INFO</p>
                                 </div>
-                                <div>
-                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">GitHub URL</label>
-                                    <input
-                                        type="url"
-                                        value={github}
-                                        onChange={(e) => setGithub(e.target.value)}
-                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                        placeholder="github.com/yourname"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-[var(--foreground-dim)] mb-1">Portfolio URL</label>
-                                    <input
-                                        type="url"
-                                        value={portfolio}
-                                        onChange={(e) => setPortfolio(e.target.value)}
-                                        className="w-full px-3 py-2 bg-[var(--surface)] border border-white/10 rounded-lg text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
-                                        placeholder="yourportfolio.com"
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs text-[var(--foreground-dim)] mb-1.5 ml-1">Email</label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-dim)]" />
+                                            <input
+                                                type="email"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-elevated)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--secondary)] focus:ring-1 focus:ring-[var(--secondary)] transition-all outline-none"
+                                                placeholder="you@email.com"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-[var(--foreground-dim)] mb-1.5 ml-1">Phone</label>
+                                        <div className="relative">
+                                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-dim)]" />
+                                            <input
+                                                type="tel"
+                                                value={phone}
+                                                onChange={(e) => setPhone(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-elevated)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--secondary)] focus:ring-1 focus:ring-[var(--secondary)] transition-all outline-none"
+                                                placeholder="+33 6 12 34 56 78"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Social Links */}
+                            <div className="border-t border-white/5 pt-6 mt-2">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Globe className="w-4 h-4 text-[var(--accent)]" />
+                                    <p className="text-sm font-semibold text-[var(--foreground-muted)] tracking-wide">SOCIAL LINKS</p>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs text-[var(--foreground-dim)] mb-1.5 ml-1">LinkedIn URL</label>
+                                        <div className="relative">
+                                            <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-dim)]" />
+                                            <input
+                                                type="url"
+                                                value={linkedin}
+                                                onChange={(e) => setLinkedin(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-elevated)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all outline-none"
+                                                placeholder="linkedin.com/in/yourname"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-[var(--foreground-dim)] mb-1.5 ml-1">GitHub URL</label>
+                                        <div className="relative">
+                                            <Github className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-dim)]" />
+                                            <input
+                                                type="url"
+                                                value={github}
+                                                onChange={(e) => setGithub(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-elevated)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all outline-none"
+                                                placeholder="github.com/yourname"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-[var(--foreground-dim)] mb-1.5 ml-1">Portfolio URL</label>
+                                        <div className="relative">
+                                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-dim)]" />
+                                            <input
+                                                type="url"
+                                                value={portfolio}
+                                                onChange={(e) => setPortfolio(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-3 bg-[var(--surface-elevated)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all outline-none"
+                                                placeholder="yourportfolio.com"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleSave}
+                                className="w-full py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold rounded-2xl hover:glow-primary transition-all shadow-lg shadow-[var(--primary)]/20 mt-4 flex items-center justify-center gap-2"
+                            >
+                                <Save className="w-5 h-5" />
+                                Save Profile
+                            </motion.button>
+
+                            {message && (
+                                <motion.p
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className={`text-center text-sm font-medium ${message.includes('Error') ? 'text-red-400' : 'text-green-400'}`}
+                                >
+                                    {message}
+                                </motion.p>
+                            )}
                         </div>
-
-                        <button
-                            onClick={handleSave}
-                            className="w-full py-3 bg-[var(--primary)] text-black font-semibold rounded-xl hover:glow-primary transition-all active:scale-[0.98]"
-                        >
-                            💾 Save Profile
-                        </button>
-
-                        {message && (
-                            <p className={`text-center text-sm ${message.includes('Error') ? 'text-[var(--danger)]' : 'text-[var(--success)]'}`}>
-                                {message}
-                            </p>
-                        )}
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Experience Section */}
-                <div className="glass gradient-border rounded-2xl p-6 mb-6">
-                    <h2 className="text-lg font-bold text-white mb-4">💼 Work Experience</h2>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="glass gradient-border rounded-3xl p-8 mb-8 relative overflow-hidden"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-[var(--secondary)]/5 pointer-events-none" />
 
-                    {/* Existing experiences as cards */}
-                    {experiences.length > 0 ? (
-                        <div className="space-y-3 mb-4">
-                            {experiences.map(exp => (
-                                <div key={exp.id} className="bg-white/5 rounded-xl p-4 relative group">
-                                    <button
-                                        onClick={() => handleDeleteExperience(exp.id)}
-                                        className="absolute top-3 right-3 text-[var(--foreground-dim)] hover:text-[var(--danger)] transition opacity-0 group-hover:opacity-100"
-                                    >
-                                        🗑️
-                                    </button>
-                                    <p className="font-semibold text-white pr-8">{exp.job_title}</p>
-                                    <p className="text-[var(--primary)] text-sm">{exp.company}</p>
-                                    <p className="text-[var(--foreground-dim)] text-xs mt-1">
-                                        {exp.start_date} → {exp.is_current ? 'Present' : (exp.end_date || 'N/A')}
-                                    </p>
-                                    {exp.description && (
-                                        <p className="text-[var(--foreground-muted)] text-sm mt-2">{exp.description}</p>
-                                    )}
-                                </div>
-                            ))}
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                            <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
+                                <Briefcase className="w-6 h-6 text-[var(--primary)]" />
+                            </div>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Work Experience</h2>
                         </div>
-                    ) : (
-                        <p className="text-[var(--foreground-dim)] text-sm mb-4">No work experience added yet.</p>
-                    )}
 
-                    {/* Collapsible Add Form */}
-                    {!showExpForm ? (
-                        <button
-                            onClick={() => setShowExpForm(true)}
-                            className="w-full py-3 border-2 border-dashed border-white/20 text-[var(--foreground-muted)] rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition"
-                        >
-                            + Add Experience
-                        </button>
-                    ) : (
-                        <div className="bg-white/5 rounded-xl p-4 space-y-3">
-                            <div className="flex justify-between items-center mb-2">
-                                <p className="text-white font-medium">New Experience</p>
-                                <button
-                                    onClick={() => setShowExpForm(false)}
-                                    className="text-[var(--foreground-dim)] hover:text-white"
+                        {/* Existing experiences as cards */}
+                        {experiences.length > 0 ? (
+                            <div className="space-y-4 mb-6">
+                                <AnimatePresence>
+                                    {experiences.map(exp => (
+                                        <motion.div
+                                            key={exp.id}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            className="bg-[var(--surface-elevated)] border border-white/5 rounded-2xl p-6 relative group hover:border-[var(--primary)]/30 transition-all"
+                                        >
+                                            <button
+                                                onClick={() => handleDeleteExperience(exp.id)}
+                                                className="absolute top-4 right-4 text-[var(--foreground-dim)] hover:text-red-400 transition opacity-0 group-hover:opacity-100 p-2 hover:bg-red-400/10 rounded-lg"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                            <div className="pr-10">
+                                                <h3 className="font-bold text-white text-lg mb-1">{exp.job_title}</h3>
+                                                <div className="flex items-center gap-2 text-[var(--primary)] text-sm font-medium mb-3">
+                                                    <Briefcase className="w-4 h-4" />
+                                                    {exp.company}
+                                                </div>
+                                                <p className="text-[var(--foreground-dim)] text-xs font-mono uppercase tracking-wider mb-3 bg-white/5 inline-block px-2 py-1 rounded-md">
+                                                    {exp.start_date} → {exp.is_current ? 'Present' : (exp.end_date || 'N/A')}
+                                                </p>
+                                                {exp.description && (
+                                                    <p className="text-[var(--foreground-muted)] text-sm leading-relaxed border-l-2 border-white/10 pl-3">
+                                                        {exp.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-2xl mb-6">
+                                <p className="text-[var(--foreground-dim)] text-sm">No work experience added yet.</p>
+                            </div>
+                        )}
+
+                        {/* Collapsible Add Form */}
+                        <AnimatePresence>
+                            {!showExpForm ? (
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setShowExpForm(true)}
+                                    className="w-full py-4 border-2 border-dashed border-white/10 text-[var(--foreground-muted)] rounded-2xl hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all flex items-center justify-center gap-2 font-medium"
                                 >
-                                    ✕
-                                </button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <input
-                                    type="text"
-                                    value={newJobTitle}
-                                    onChange={(e) => setNewJobTitle(e.target.value)}
-                                    className="px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                    placeholder="Job Title *"
-                                />
-                                <input
-                                    type="text"
-                                    value={newCompany}
-                                    onChange={(e) => setNewCompany(e.target.value)}
-                                    className="px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                    placeholder="Company *"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-xs text-[var(--foreground-dim)]">Start Date</label>
-                                    <input
-                                        type="month"
-                                        value={newStartDate}
-                                        onChange={(e) => setNewStartDate(e.target.value)}
-                                        className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm"
+                                    <Plus className="w-5 h-5" />
+                                    Add Experience
+                                </motion.button>
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="bg-[var(--surface-elevated)] border border-white/10 rounded-2xl p-6 space-y-4"
+                                >
+                                    <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
+                                        <p className="text-white font-bold flex items-center gap-2">
+                                            <Plus className="w-4 h-4 text-[var(--primary)]" />
+                                            New Experience
+                                        </p>
+                                        <button
+                                            onClick={() => setShowExpForm(false)}
+                                            className="text-[var(--foreground-dim)] hover:text-white p-1 hover:bg-white/10 rounded-lg transition"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input
+                                            type="text"
+                                            value={newJobTitle}
+                                            onChange={(e) => setNewJobTitle(e.target.value)}
+                                            className="px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                            placeholder="Job Title *"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={newCompany}
+                                            onChange={(e) => setNewCompany(e.target.value)}
+                                            className="px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                            placeholder="Company *"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs text-[var(--foreground-dim)] mb-1 block">Start Date</label>
+                                            <input
+                                                type="month"
+                                                value={newStartDate}
+                                                onChange={(e) => setNewStartDate(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm outline-none focus:border-[var(--primary)]"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-[var(--foreground-dim)] mb-1 block">End Date</label>
+                                            <input
+                                                type="month"
+                                                value={newEndDate}
+                                                onChange={(e) => setNewEndDate(e.target.value)}
+                                                disabled={isCurrent}
+                                                className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm disabled:opacity-30 outline-none focus:border-[var(--primary)]"
+                                            />
+                                        </div>
+                                    </div>
+                                    <label className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] cursor-pointer hover:text-white transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={isCurrent}
+                                            onChange={(e) => setIsCurrent(e.target.checked)}
+                                            className="rounded border-white/20 bg-white/5 text-[var(--primary)] focus:ring-0 w-4 h-4"
+                                        />
+                                        I currently work here
+                                    </label>
+                                    <textarea
+                                        value={newDescription}
+                                        onChange={(e) => setNewDescription(e.target.value)}
+                                        rows={3}
+                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] resize-none outline-none focus:border-[var(--primary)]"
+                                        placeholder="Describe your role..."
                                     />
-                                </div>
-                                <div>
-                                    <label className="text-xs text-[var(--foreground-dim)]">End Date</label>
-                                    <input
-                                        type="month"
-                                        value={newEndDate}
-                                        onChange={(e) => setNewEndDate(e.target.value)}
-                                        disabled={isCurrent}
-                                        className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm disabled:opacity-50"
-                                    />
-                                </div>
-                            </div>
-                            <label className="flex items-center gap-2 text-sm text-[var(--foreground-muted)]">
-                                <input
-                                    type="checkbox"
-                                    checked={isCurrent}
-                                    onChange={(e) => setIsCurrent(e.target.checked)}
-                                    className="rounded"
-                                />
-                                I currently work here
-                            </label>
-                            <textarea
-                                value={newDescription}
-                                onChange={(e) => setNewDescription(e.target.value)}
-                                rows={2}
-                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] resize-none"
-                                placeholder="Describe your role..."
-                            />
-                            <button
-                                onClick={handleAddExperience}
-                                className="w-full py-2 bg-[var(--primary)] text-black font-medium rounded-xl hover:glow-primary transition"
-                            >
-                                Save Experience
-                            </button>
-                        </div>
-                    )}
-                </div>
+                                    <button
+                                        onClick={handleAddExperience}
+                                        className="w-full py-3 bg-[var(--primary)] text-black font-bold rounded-xl hover:glow-primary transition active:scale-[0.98]"
+                                    >
+                                        Save Experience
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
 
                 {/* Education Section */}
-                <div className="glass gradient-border rounded-2xl p-6">
-                    <h2 className="text-lg font-bold text-white mb-4">🎓 Education</h2>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="glass gradient-border rounded-3xl p-8 mb-8 relative overflow-hidden"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-[var(--secondary)]/5 pointer-events-none" />
 
-                    {/* Existing education as cards */}
-                    {education.length > 0 ? (
-                        <div className="space-y-3 mb-4">
-                            {education.map(edu => (
-                                <div key={edu.id} className="bg-white/5 rounded-xl p-4 relative group">
-                                    <button
-                                        onClick={() => handleDeleteEducation(edu.id)}
-                                        className="absolute top-3 right-3 text-[var(--foreground-dim)] hover:text-[var(--danger)] transition opacity-0 group-hover:opacity-100"
-                                    >
-                                        🗑️
-                                    </button>
-                                    <p className="font-semibold text-white pr-8">{edu.degree}</p>
-                                    <p className="text-[var(--primary)] text-sm">{edu.school}</p>
-                                    {edu.field_of_study && (
-                                        <p className="text-[var(--foreground-muted)] text-sm">{edu.field_of_study}</p>
-                                    )}
-                                    {edu.graduation_year && (
-                                        <p className="text-[var(--foreground-dim)] text-xs mt-1">Class of {edu.graduation_year}</p>
-                                    )}
-                                </div>
-                            ))}
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                            <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
+                                <GraduationCap className="w-6 h-6 text-[var(--primary)]" />
+                            </div>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Education</h2>
                         </div>
-                    ) : (
-                        <p className="text-[var(--foreground-dim)] text-sm mb-4">No education added yet.</p>
-                    )}
 
-                    {/* Collapsible Add Form */}
-                    {!showEduForm ? (
-                        <button
-                            onClick={() => setShowEduForm(true)}
-                            className="w-full py-3 border-2 border-dashed border-white/20 text-[var(--foreground-muted)] rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition"
-                        >
-                            + Add Education
-                        </button>
-                    ) : (
-                        <div className="bg-white/5 rounded-xl p-4 space-y-3">
-                            <div className="flex justify-between items-center mb-2">
-                                <p className="text-white font-medium">New Education</p>
-                                <button
-                                    onClick={() => setShowEduForm(false)}
-                                    className="text-[var(--foreground-dim)] hover:text-white"
+                        {/* Existing education as cards */}
+                        {education.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <AnimatePresence>
+                                    {education.map(edu => (
+                                        <motion.div
+                                            key={edu.id}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            className="bg-[var(--surface-elevated)] border border-white/5 rounded-2xl p-6 relative group hover:border-[var(--primary)]/30 transition-all flex flex-col justify-between"
+                                        >
+                                            <button
+                                                onClick={() => handleDeleteEducation(edu.id)}
+                                                className="absolute top-4 right-4 text-[var(--foreground-dim)] hover:text-red-400 transition opacity-0 group-hover:opacity-100 p-2 hover:bg-red-400/10 rounded-lg"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+
+                                            <div>
+                                                <h3 className="font-bold text-white text-lg mb-1 pr-8">{edu.degree}</h3>
+                                                <p className="text-[var(--primary)] text-sm font-medium mb-3">{edu.school}</p>
+                                                {edu.field_of_study && (
+                                                    <div className="inline-block px-3 py-1 bg-white/5 rounded-full text-xs text-[var(--foreground-muted)] mb-3">
+                                                        {edu.field_of_study}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {edu.graduation_year && (
+                                                <div className="text-[var(--foreground-dim)] text-xs font-mono border-t border-white/5 pt-3 mt-2 flex items-center gap-2">
+                                                    <Award className="w-3 h-3" />
+                                                    Class of {edu.graduation_year}
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-2xl mb-6">
+                                <p className="text-[var(--foreground-dim)] text-sm">No education added yet.</p>
+                            </div>
+                        )}
+
+                        {/* Collapsible Add Form */}
+                        <AnimatePresence>
+                            {!showEduForm ? (
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setShowEduForm(true)}
+                                    className="w-full py-4 border-2 border-dashed border-white/10 text-[var(--foreground-muted)] rounded-2xl hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all flex items-center justify-center gap-2 font-medium"
                                 >
-                                    ✕
-                                </button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <input
-                                    type="text"
-                                    value={newDegree}
-                                    onChange={(e) => setNewDegree(e.target.value)}
-                                    className="px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                    placeholder="Degree *"
-                                />
-                                <input
-                                    type="text"
-                                    value={newSchool}
-                                    onChange={(e) => setNewSchool(e.target.value)}
-                                    className="px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                    placeholder="School *"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <input
-                                    type="text"
-                                    value={newField}
-                                    onChange={(e) => setNewField(e.target.value)}
-                                    className="px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                    placeholder="Field of Study"
-                                />
-                                <input
-                                    type="number"
-                                    value={newGradYear}
-                                    onChange={(e) => setNewGradYear(e.target.value)}
-                                    className="px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                    placeholder="Grad Year"
-                                />
-                            </div>
-                            <button
-                                onClick={handleAddEducation}
-                                className="w-full py-2 bg-[var(--primary)] text-black font-medium rounded-xl hover:glow-primary transition"
-                            >
-                                Save Education
-                            </button>
-                        </div>
-                    )}
-                </div>
+                                    <Plus className="w-5 h-5" />
+                                    Add Education
+                                </motion.button>
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="bg-[var(--surface-elevated)] border border-white/10 rounded-2xl p-6 space-y-4"
+                                >
+                                    <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
+                                        <p className="text-white font-bold flex items-center gap-2">
+                                            <Plus className="w-4 h-4 text-[var(--primary)]" />
+                                            New Education
+                                        </p>
+                                        <button
+                                            onClick={() => setShowEduForm(false)}
+                                            className="text-[var(--foreground-dim)] hover:text-white p-1 hover:bg-white/10 rounded-lg transition"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input
+                                            type="text"
+                                            value={newDegree}
+                                            onChange={(e) => setNewDegree(e.target.value)}
+                                            className="px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                            placeholder="Degree *"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={newSchool}
+                                            onChange={(e) => setNewSchool(e.target.value)}
+                                            className="px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                            placeholder="School *"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input
+                                            type="text"
+                                            value={newField}
+                                            onChange={(e) => setNewField(e.target.value)}
+                                            className="px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                            placeholder="Field of Study"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={newGradYear}
+                                            onChange={(e) => setNewGradYear(e.target.value)}
+                                            className="px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                            placeholder="Grad Year (e.g. 2025)"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleAddEducation}
+                                        className="w-full py-3 bg-[var(--primary)] text-black font-bold rounded-xl hover:glow-primary transition active:scale-[0.98]"
+                                    >
+                                        Save Education
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
 
                 {/* Projects Section */}
-                <div className="glass gradient-border rounded-2xl p-6 mb-6">
-                    <h2 className="text-lg font-bold text-white mb-4">🚀 Projects</h2>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="glass gradient-border rounded-3xl p-8 mb-8 relative overflow-hidden"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-[var(--secondary)]/5 pointer-events-none" />
 
-                    {projects.length > 0 ? (
-                        <div className="space-y-3 mb-4">
-                            {projects.map(proj => (
-                                <div key={proj.id} className="relative group bg-[var(--surface)] rounded-xl p-4">
-                                    <button
-                                        onClick={() => handleDeleteProject(proj.id)}
-                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xl transition"
-                                    >×</button>
-                                    <p className="font-semibold text-white">{proj.title}</p>
-                                    {proj.description && (
-                                        <p className="text-sm text-[var(--foreground-dim)] mt-1">{proj.description}</p>
-                                    )}
-                                    {proj.tech_stack && proj.tech_stack.length > 0 && (
-                                        <p className="text-xs text-[var(--primary)] mt-2">
-                                            {proj.tech_stack.join(' • ')}
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                            <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
+                                <Rocket className="w-6 h-6 text-[var(--primary)]" />
+                            </div>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Projects</h2>
+                        </div>
+
+                        {projects.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <AnimatePresence>
+                                    {projects.map(proj => (
+                                        <motion.div
+                                            key={proj.id}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            className="bg-[var(--surface-elevated)] border border-white/5 rounded-2xl p-6 relative group hover:border-[var(--primary)]/30 transition-all flex flex-col justify-between"
+                                        >
+                                            <button
+                                                onClick={() => handleDeleteProject(proj.id)}
+                                                className="absolute top-4 right-4 text-[var(--foreground-dim)] hover:text-red-400 transition opacity-0 group-hover:opacity-100 p-2 hover:bg-red-400/10 rounded-lg"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+
+                                            <div>
+                                                <h3 className="font-bold text-white text-lg mb-2 pr-8">{proj.title}</h3>
+                                                {proj.description && (
+                                                    <p className="text-[var(--foreground-muted)] text-sm mb-4 line-clamp-3 leading-relaxed">
+                                                        {proj.description}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-3 mt-2">
+                                                {proj.tech_stack && proj.tech_stack.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {proj.tech_stack.slice(0, 3).map((tech, i) => (
+                                                            <span key={i} className="text-[10px] uppercase font-bold text-[var(--foreground-dim)] bg-white/5 px-2 py-1 rounded-md border border-white/5">
+                                                                {tech}
+                                                            </span>
+                                                        ))}
+                                                        {proj.tech_stack.length > 3 && (
+                                                            <span className="text-[10px] uppercase font-bold text-[var(--foreground-dim)] bg-white/5 px-2 py-1 rounded-md border border-white/5">
+                                                                +{proj.tech_stack.length - 3}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {proj.url && (
+                                                    <a href={proj.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-[var(--primary)] hover:underline pt-2 border-t border-white/5">
+                                                        <Globe className="w-3 h-3" />
+                                                        {proj.url.replace(/^https?:\/\//, '')}
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-2xl mb-6">
+                                <p className="text-[var(--foreground-dim)] text-sm">No projects added yet</p>
+                            </div>
+                        )}
+
+                        <AnimatePresence>
+                            {!showProjectForm ? (
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setShowProjectForm(true)}
+                                    className="w-full py-4 border-2 border-dashed border-white/10 text-[var(--foreground-muted)] rounded-2xl hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all flex items-center justify-center gap-2 font-medium"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                    Add Project
+                                </motion.button>
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="bg-[var(--surface-elevated)] border border-white/10 rounded-2xl p-6 space-y-4"
+                                >
+                                    <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
+                                        <p className="text-white font-bold flex items-center gap-2">
+                                            <Plus className="w-4 h-4 text-[var(--primary)]" />
+                                            New Project
                                         </p>
-                                    )}
-                                    {proj.url && (
-                                        <a href={proj.url} target="_blank" className="text-xs text-blue-400 mt-1 block">
-                                            🔗 {proj.url}
-                                        </a>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-[var(--foreground-dim)] text-sm mb-4">No projects added yet</p>
-                    )}
-
-                    <button
-                        onClick={() => setShowProjectForm(!showProjectForm)}
-                        className="text-[var(--primary)] text-sm font-medium hover:underline"
-                    >
-                        {showProjectForm ? '− Cancel' : '+ Add Project'}
-                    </button>
-
-                    {showProjectForm && (
-                        <div className="mt-4 space-y-3">
-                            <input
-                                type="text"
-                                value={newProjectTitle}
-                                onChange={(e) => setNewProjectTitle(e.target.value)}
-                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                placeholder="Project Title *"
-                            />
-                            <textarea
-                                value={newProjectDesc}
-                                onChange={(e) => setNewProjectDesc(e.target.value)}
-                                rows={2}
-                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] resize-none"
-                                placeholder="Brief description..."
-                            />
-                            <input
-                                type="text"
-                                value={newProjectTech}
-                                onChange={(e) => setNewProjectTech(e.target.value)}
-                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                placeholder="Tech Stack (comma separated): React, Node.js, MongoDB"
-                            />
-                            <input
-                                type="url"
-                                value={newProjectUrl}
-                                onChange={(e) => setNewProjectUrl(e.target.value)}
-                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                placeholder="Project URL (optional)"
-                            />
-                            <button
-                                onClick={handleAddProject}
-                                className="w-full py-2 bg-[var(--primary)] text-black font-medium rounded-xl hover:glow-primary transition"
-                            >
-                                Save Project
-                            </button>
-                        </div>
-                    )}
-                </div>
+                                        <button
+                                            onClick={() => setShowProjectForm(false)}
+                                            className="text-[var(--foreground-dim)] hover:text-white p-1 hover:bg-white/10 rounded-lg transition"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={newProjectTitle}
+                                        onChange={(e) => setNewProjectTitle(e.target.value)}
+                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                        placeholder="Project Title *"
+                                    />
+                                    <textarea
+                                        value={newProjectDesc}
+                                        onChange={(e) => setNewProjectDesc(e.target.value)}
+                                        rows={2}
+                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] resize-none outline-none focus:border-[var(--primary)]"
+                                        placeholder="Brief description..."
+                                    />
+                                    <input
+                                        type="text"
+                                        value={newProjectTech}
+                                        onChange={(e) => setNewProjectTech(e.target.value)}
+                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                        placeholder="Tech Stack (comma separated): React, Node.js, MongoDB"
+                                    />
+                                    <input
+                                        type="url"
+                                        value={newProjectUrl}
+                                        onChange={(e) => setNewProjectUrl(e.target.value)}
+                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                        placeholder="Project URL (optional)"
+                                    />
+                                    <button
+                                        onClick={handleAddProject}
+                                        className="w-full py-3 bg-[var(--primary)] text-black font-bold rounded-xl hover:glow-primary transition active:scale-[0.98]"
+                                    >
+                                        Save Project
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
 
                 {/* Certifications Section */}
-                <div className="glass gradient-border rounded-2xl p-6 mb-6">
-                    <h2 className="text-lg font-bold text-white mb-4">🏆 Certifications</h2>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="glass gradient-border rounded-3xl p-8 mb-8 relative overflow-hidden"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-[var(--secondary)]/5 pointer-events-none" />
 
-                    {certifications.length > 0 ? (
-                        <div className="space-y-3 mb-4">
-                            {certifications.map(cert => (
-                                <div key={cert.id} className="relative group bg-[var(--surface)] rounded-xl p-4">
-                                    <button
-                                        onClick={() => handleDeleteCertification(cert.id)}
-                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xl transition"
-                                    >×</button>
-                                    <p className="font-semibold text-white">{cert.name}</p>
-                                    {cert.issuer && (
-                                        <p className="text-sm text-[var(--primary)]">{cert.issuer}</p>
-                                    )}
-                                    {cert.issue_date && (
-                                        <p className="text-xs text-[var(--foreground-dim)] mt-1">
-                                            Issued: {new Date(cert.issue_date).toLocaleDateString()}
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                            <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
+                                <Award className="w-6 h-6 text-[var(--primary)]" />
+                            </div>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Certifications</h2>
+                        </div>
+
+                        {certifications.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <AnimatePresence>
+                                    {certifications.map(cert => (
+                                        <motion.div
+                                            key={cert.id}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            className="bg-[var(--surface-elevated)] border border-white/5 rounded-2xl p-6 relative group hover:border-[var(--primary)]/30 transition-all flex flex-col justify-between"
+                                        >
+                                            <button
+                                                onClick={() => handleDeleteCertification(cert.id)}
+                                                className="absolute top-4 right-4 text-[var(--foreground-dim)] hover:text-red-400 transition opacity-0 group-hover:opacity-100 p-2 hover:bg-red-400/10 rounded-lg"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+
+                                            <div>
+                                                <h3 className="font-bold text-white text-lg mb-1 pr-8">{cert.name}</h3>
+                                                {cert.issuer && (
+                                                    <p className="text-[var(--primary)] text-sm font-medium mb-3">{cert.issuer}</p>
+                                                )}
+                                                {cert.issue_date && (
+                                                    <p className="text-[var(--foreground-dim)] text-xs font-mono uppercase tracking-wider bg-white/5 inline-block px-2 py-1 rounded-md">
+                                                        Issued: {new Date(cert.issue_date).toLocaleDateString()}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-2xl mb-6">
+                                <p className="text-[var(--foreground-dim)] text-sm">No certifications added yet</p>
+                            </div>
+                        )}
+
+                        <AnimatePresence>
+                            {!showCertForm ? (
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setShowCertForm(true)}
+                                    className="w-full py-4 border-2 border-dashed border-white/10 text-[var(--foreground-muted)] rounded-2xl hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all flex items-center justify-center gap-2 font-medium"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                    Add Certification
+                                </motion.button>
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="bg-[var(--surface-elevated)] border border-white/10 rounded-2xl p-6 space-y-4"
+                                >
+                                    <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
+                                        <p className="text-white font-bold flex items-center gap-2">
+                                            <Plus className="w-4 h-4 text-[var(--primary)]" />
+                                            New Certification
                                         </p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-[var(--foreground-dim)] text-sm mb-4">No certifications added yet</p>
-                    )}
-
-                    <button
-                        onClick={() => setShowCertForm(!showCertForm)}
-                        className="text-[var(--primary)] text-sm font-medium hover:underline"
-                    >
-                        {showCertForm ? '− Cancel' : '+ Add Certification'}
-                    </button>
-
-                    {showCertForm && (
-                        <div className="mt-4 space-y-3">
-                            <input
-                                type="text"
-                                value={newCertName}
-                                onChange={(e) => setNewCertName(e.target.value)}
-                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                placeholder="Certification Name *"
-                            />
-                            <input
-                                type="text"
-                                value={newCertIssuer}
-                                onChange={(e) => setNewCertIssuer(e.target.value)}
-                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)]"
-                                placeholder="Issuing Organization (AWS, Google, etc.)"
-                            />
-                            <input
-                                type="date"
-                                value={newCertDate}
-                                onChange={(e) => setNewCertDate(e.target.value)}
-                                className="w-full px-4 py-2 bg-[var(--surface)] border border-white/10 rounded-xl text-white text-sm"
-                            />
-                            <button
-                                onClick={handleAddCertification}
-                                className="w-full py-2 bg-[var(--primary)] text-black font-medium rounded-xl hover:glow-primary transition"
-                            >
-                                Save Certification
-                            </button>
-                        </div>
-                    )}
-                </div>
+                                        <button
+                                            onClick={() => setShowCertForm(false)}
+                                            className="text-[var(--foreground-dim)] hover:text-white p-1 hover:bg-white/10 rounded-lg transition"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={newCertName}
+                                        onChange={(e) => setNewCertName(e.target.value)}
+                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                        placeholder="Certification Name *"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={newCertIssuer}
+                                        onChange={(e) => setNewCertIssuer(e.target.value)}
+                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
+                                        placeholder="Issuing Organization (AWS, Google, etc.)"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={newCertDate}
+                                        onChange={(e) => setNewCertDate(e.target.value)}
+                                        className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm focus:border-[var(--primary)] outline-none"
+                                    />
+                                    <button
+                                        onClick={handleAddCertification}
+                                        className="w-full py-3 bg-[var(--primary)] text-black font-bold rounded-xl hover:glow-primary transition active:scale-[0.98]"
+                                    >
+                                        Save Certification
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
             </div>
         </div>
     );

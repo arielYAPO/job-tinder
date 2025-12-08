@@ -101,23 +101,40 @@ Certification ${i + 1}:
 `).join('\n')
             : 'No certifications provided';
 
-        // 10. Build the PRODUCT-GRADE ATS CV prompt
-        const prompt = `You are an expert ATS resume writer. Your job is to POLISH and TAILOR, not INVENT.
+        // 10. Build the ATS-OPTIMIZED CV prompt (targeting 90+ ATS score)
+        const prompt = `You are an expert ATS resume optimizer. Your goal is to achieve a 90+ ATS match score.
 
 === CORE RULES (NON-NEGOTIABLE) ===
-1. Use ONLY information provided by the user
-2. Do NOT invent companies, degrees, tools, projects, or metrics
-3. If metrics are not provided, write strong QUALITATIVE impact statements instead
-4. Never fabricate numbers - use "improved", "enhanced", "streamlined" instead of fake percentages
-5. Prioritize PROJECTS over experience for apprenticeship/internship candidates
+1. Use ONLY information provided by the user - NEVER invent data
+2. Do NOT fabricate companies, degrees, tools, or metrics
+3. You CAN rephrase and enhance truthful content
+4. Prioritize PROJECTS over experience for apprenticeship candidates
 
-=== WHAT YOU SHOULD DO ===
-- Generate a tailored professional title from job title + top skills
-- Extract top 10 hard skills from the job description
-- Map them to candidate skills (only use matches that are truthful)
-- Rewrite all bullets with: [Strong Action Verb] + [What was done] + [Qualitative Impact]
-- Use clean, ATS-friendly single-column format
-- Order sections: Title → Summary → Skills → Projects → Education → Experience → Certifications → Languages
+=== ATS OPTIMIZATION RULES ===
+1. **KEYWORD FORCING**: Extract top 10 hard skills from the job description. These MUST appear in:
+   - Skills section (all 10)
+   - Professional summary (at least 3)
+   - Project bullets (at least 5 distributed across projects)
+   
+2. **TITLE MATCHING**: The tailored_title MUST closely match the job title format:
+   - Use the EXACT job title from the posting
+   - Add " — " then top 3 technical skills
+   - Example: "Développeur Full Stack (Alternance) — React / Node.js / MongoDB"
+
+3. **WORD COUNT**: Target 550-650 words total. This is optimal for ATS + readability.
+
+4. **QUANTIFIED IMPACT**: Every project/experience needs lightweight metrics. Use these patterns:
+   - "Built X screens/pages/components"
+   - "Improved performance by optimizing..."
+   - "Deployed to X users/classmates"
+   - "Automated X manual steps"
+   - "Reduced load time through caching/optimization"
+   - If no real metrics, use SPECIFIC verbs: "Architected", "Streamlined", "Orchestrated"
+
+5. **SKILL CATEGORIES**: Group skills intelligently:
+   - Frontend: React, TypeScript, CSS, etc.
+   - Backend: Node.js, Python, SQL, NoSQL, etc.
+   - DevOps/Tools: Git, Docker, AWS, Agile (Scrum)
 
 === CANDIDATE INFO ===
 Name: ${profile?.full_name || 'Candidate'}
@@ -126,7 +143,7 @@ Skills: ${profile?.skills ? profile.skills.join(', ') : 'Not specified'}
 Languages: ${profile?.languages ? profile.languages.join(', ') : 'Not specified'}
 Bio: ${profile?.bio || 'Not provided'}
 
-=== WORK EXPERIENCE (polish, don't invent) ===
+=== WORK EXPERIENCE ===
 ${experienceText}
 
 === EDUCATION ===
@@ -138,7 +155,7 @@ ${projectsText}
 === CERTIFICATIONS ===
 ${certsText}
 
-=== TARGET JOB ===
+=== TARGET JOB (EXTRACT KEYWORDS FROM THIS) ===
 Title: ${job?.title || 'Position'}
 Company: ${job?.company_name || 'Company'}
 Description: ${job?.description || 'No description'}
@@ -148,21 +165,24 @@ Location: ${job?.location_city || 'Not specified'}
 === OUTPUT FORMAT ===
 Return a JSON object with this EXACT structure:
 {
-  "tailored_title": "Job Title Apprentice — Top Skill 1 / Top Skill 2 / Top Skill 3",
-  "professional_summary": "2-3 sentences: Who you are + What you bring + Why this role. Integrate job keywords naturally. Be specific to THIS job at THIS company.",
-  "skills": ["Top 8-12 skills that MATCH both candidate profile AND job requirements"],
+  "tailored_title": "[EXACT Job Title] — Skill1 / Skill2 / Skill3",
+  "professional_summary": "2-3 sentences with AT LEAST 3 job keywords naturally integrated. Mention the company name. Format: Who you are + What you bring + Why this role.",
+  "skills": ["8-12 skills that appear in BOTH candidate profile AND job description. Include variations like 'NoSQL (MongoDB)', 'Agile (Scrum)'"],
   "projects": [
     {
       "title": "Project Name",
-      "description": "1-2 sentences: What it does + your contribution",
-      "tech_stack": ["Tech 1", "Tech 2"],
-      "bullets": ["Achievement without fake metrics", "What you built or contributed"]
+      "tech_stack": ["Tech that matches JD"],
+      "bullets": [
+        "Action verb + what you built + lightweight metric or specific impact",
+        "Another achievement with JD keyword integrated",
+        "Third bullet with different JD keyword"
+      ]
     }
   ],
   "education": [
     {
       "degree": "Degree Name",
-      "field": "Field of Study",
+      "field": "Field of Study", 
       "school": "School Name",
       "year": "YYYY"
     }
@@ -172,28 +192,28 @@ Return a JSON object with this EXACT structure:
       "title": "Job Title",
       "company": "Company Name",
       "duration": "Start - End",
-      "bullets": ["Use action verbs", "Qualitative impact only - no invented metrics", "What you actually did"]
+      "bullets": ["Action verb + task + impact with JD keyword"]
     }
   ],
   "certifications": [
-    {
-      "name": "Certification Name",
-      "issuer": "Issuing Organization"
-    }
+    {"name": "Cert Name", "issuer": "Issuer"}
   ],
   "languages": ["Language (Level)"],
-  "matched_keywords": ["Top 5-8 keywords from job description that match candidate profile"]
+  "matched_keywords": ["Top 10 keywords from JD that are now in the resume"],
+  "ats_optimization_notes": "Brief note on which keywords were placed where"
 }
 
-=== QUALITY CHECKLIST ===
-- Every bullet starts with a strong action verb
-- No bullet exceeds 2 lines
-- No invented metrics or fake numbers
-- Skills section only includes truthful matches
-- Projects come BEFORE experience (apprenticeship optimization)
-- Summary mentions the specific company and role
+=== QUALITY CHECKLIST (VERIFY BEFORE OUTPUT) ===
+✅ Title matches JD format exactly + has skill stack
+✅ Summary has 3+ job keywords
+✅ Skills section has 8-12 items including JD requirements
+✅ Each project has 2-3 bullets with JD keywords
+✅ Every bullet starts with strong action verb
+✅ At least 3 lightweight metrics across all bullets
+✅ Projects appear BEFORE work experience
+✅ Total word count: 550-650 words
 
-Generate now. Return ONLY valid JSON, no markdown code blocks.`;
+Generate now. Return ONLY valid JSON, no markdown.`;
 
         // 9. Call Gemini
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });

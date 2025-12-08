@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Loader2, FileDown } from 'lucide-react';
 
 // =============================================================================
 // CLASSIC SINGLE COLUMN ATS TEMPLATE
@@ -473,9 +474,17 @@ export default function CVDownloadButton({ cvContent, jobTitle, profileName, loc
         <button
             onClick={handleDownload}
             disabled={downloading}
-            className="px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:glow-primary transition text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-lg hover:glow-primary transition text-sm disabled:opacity-50 flex items-center gap-2"
         >
-            {downloading ? '⏳ Generating...' : '📄 Download CV'}
+            {downloading ? (
+                <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                </>
+            ) : (
+                <>
+                    <FileDown className="w-4 h-4" /> Download CV
+                </>
+            )}
         </button>
     );
 }
