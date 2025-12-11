@@ -1,7 +1,0 @@
-{
-    "x-vercel-protection-bypass": {
-        "paths": [
-            "/api/webhooks/*"
-        ]
-    }
-}
