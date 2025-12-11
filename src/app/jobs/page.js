@@ -1,3 +1,4 @@
+import Link from "next/link";
 import createClient from "@/lib/supabase/server";
 import LogoutButton from "@/components/LogoutButton";
 import JobsPageClient from "@/components/JobPageClient";
@@ -17,24 +18,11 @@ async function JobsPage() {
         .select('*')
         .in('source', ['manual', 'linkedin']);
 
-    // 1B. API jobs (La Bonne Alternance)
-    let apiJobs = [];
-    try {
-        const baseUrl = process.env.VERCEL_URL
-            ? `https://${process.env.VERCEL_URL}`
-            : 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/labonnealternance`, {
-            cache: 'no-store'
-        });
-        if (res.ok) {
-            apiJobs = await res.json();
-        }
-    } catch (err) {
-        console.error('API fetch failed:', err);
-    }
+    // NOTE: La Bonne Alternance API fetch removed for now (not enough jobs)
+    // Can re-enable later if needed
 
-    // Combine all sources
-    const allJobs = [...(dbJobs || []), ...(Array.isArray(apiJobs) ? apiJobs : [])];
+    // All jobs come from database only
+    const allJobs = dbJobs || [];
 
     // ==========================================
     // STEP 2: Filter out swiped jobs
@@ -65,12 +53,14 @@ async function JobsPage() {
                         Job<span className="text-neon">Tinder</span>
                     </h1>
                     <div className="flex gap-2">
-                        <a href="/profile" className="px-4 py-2 md:px-4 md:py-2 p-2 bg-white/5 border border-white/10 text-[var(--foreground-muted)] rounded-xl hover:bg-white/10 hover:text-white transition text-sm flex items-center justify-center">
-                            <User className="w-5 h-5" />
-                        </a>
-                        <a href="/liked" className="px-4 py-2 md:px-4 md:py-2 p-2 bg-[var(--secondary)]/20 border border-[var(--secondary)]/30 text-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/30 transition text-sm flex items-center justify-center">
-                            <Heart className="w-5 h-5 fill-current" />
-                        </a>
+                        <Link href="/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-[var(--foreground-muted)] rounded-xl hover:bg-white/10 hover:text-white transition text-sm font-medium">
+                            <User className="w-4 h-4" />
+                            <span>Profile</span>
+                        </Link>
+                        <Link href="/liked" className="flex items-center gap-2 px-4 py-2 bg-[var(--secondary)]/20 border border-[var(--secondary)]/30 text-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/30 transition text-sm font-medium">
+                            <Heart className="w-4 h-4 fill-current" />
+                            <span>My CVs</span>
+                        </Link>
                         <LogoutButton />
                     </div>
                 </div>

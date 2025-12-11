@@ -1,11 +1,12 @@
-'use client'
 import createClient from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { MapPin, Building2, X, Heart, Sparkles, Briefcase, Clock, GraduationCap, Laptop, Wand2, Code, Target, Users, Gift, Loader2, DollarSign, User, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function JobCard({ job, onSwipe }) {
     const supabase = createClient();
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [simplifying, setSimplifying] = useState(false);
@@ -116,6 +117,9 @@ function JobCard({ job, onSwipe }) {
                     job_id: storedJob.id
                 })
             });
+
+            // Redirect to liked page to see the result
+            router.push('/liked');
 
         } catch (error) {
             console.error('❌ Like action failed:', error);
@@ -430,7 +434,7 @@ function JobCard({ job, onSwipe }) {
                         <div className="p-1 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors">
                             <Heart className="w-5 h-5 fill-white" />
                         </div>
-                        {loading ? 'Generating...' : 'Apply & Tailor CV'}
+                        {loading ? 'Generating...' : 'Tailor CV'}
                     </button>
                 </div>
             </div>
