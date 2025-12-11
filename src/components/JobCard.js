@@ -1,7 +1,7 @@
 'use client'
 import createClient from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
-import { MapPin, Building2, X, Heart, Sparkles, Briefcase, Clock, GraduationCap, Laptop, Wand2, Code, Target, Users, Gift, Loader2 } from 'lucide-react';
+import { MapPin, Building2, X, Heart, Sparkles, Briefcase, Clock, GraduationCap, Laptop, Wand2, Code, Target, Users, Gift, Loader2, DollarSign, User, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function JobCard({ job, onSwipe }) {
@@ -234,6 +234,18 @@ function JobCard({ job, onSwipe }) {
                             Bac+{displayJob.target_diploma.level}
                         </div>
                     )}
+                    {displayJob.salary && (
+                        <div className="flex items-center gap-1.5 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20 text-green-400">
+                            <DollarSign className="w-3.5 h-3.5" />
+                            {displayJob.salary}
+                        </div>
+                    )}
+                    {displayJob.experience_level && (
+                        <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20 text-amber-400">
+                            <Briefcase className="w-3.5 h-3.5" />
+                            {displayJob.experience_level}
+                        </div>
+                    )}
                 </div>
 
                 {/* Description - Scrollable area with HTML rendering */}
@@ -345,7 +357,7 @@ function JobCard({ job, onSwipe }) {
                                     {simplifying ? (
                                         <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Analyse...</>
                                     ) : (
-                                        <><Wand2 className="w-3.5 h-3.5" /> ✨ Simplifier</>
+                                        <><Wand2 className="w-3.5 h-3.5" /> Simplifier</>
                                     )}
                                 </button>
                             </div>
@@ -371,6 +383,29 @@ function JobCard({ job, onSwipe }) {
                                     {skill}
                                 </span>
                             ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Recruiter Info - LinkedIn Jobs */}
+                {displayJob.recruiter_name && (
+                    <div className="mt-4 pt-4 border-t border-white/5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)]">
+                                <User className="w-4 h-4" />
+                                <span>Recruiter: <strong className="text-white">{displayJob.recruiter_name}</strong></span>
+                            </div>
+                            {displayJob.recruiter_url && (
+                                <a
+                                    href={displayJob.recruiter_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/20 transition-colors"
+                                >
+                                    <ExternalLink className="w-3 h-3" />
+                                    Contact on LinkedIn
+                                </a>
+                            )}
                         </div>
                     </div>
                 )}

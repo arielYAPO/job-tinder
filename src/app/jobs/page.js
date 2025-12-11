@@ -1,6 +1,6 @@
 import createClient from "@/lib/supabase/server";
 import LogoutButton from "@/components/LogoutButton";
-import JobSwiper from "@/components/JobSwiper";
+import JobsPageClient from "@/components/JobPageClient";
 import { User, Heart } from "lucide-react";
 
 async function JobsPage() {
@@ -72,8 +72,7 @@ async function JobsPage() {
                     </div>
                 </div>
 
-                {/* Job Swiper */}
-                <JobSwiper jobs={freshJobs} />
+                <JobsPageClient jobs={freshJobs} />
             </div>
         </div>
     )
