@@ -11,16 +11,19 @@ async function JobsPage() {
     // STEP 1: Fetch from all sources
     // ==========================================
 
-    // 1A. Database jobs (manual)
+    // 1A. Database jobs (manual + linkedin)
     const { data: dbJobs } = await supabase
         .from('jobs')
         .select('*')
-        .eq('source', 'manual');
+        .in('source', ['manual', 'linkedin']);
 
     // 1B. API jobs (La Bonne Alternance)
     let apiJobs = [];
     try {
-        const res = await fetch('http://localhost:3000/api/labonnealternance', {
+        const baseUrl = process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : 'http://localhost:3000';
+        const res = await fetch(`${baseUrl}/api/labonnealternance`, {
             cache: 'no-store'
         });
         if (res.ok) {
