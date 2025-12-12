@@ -267,7 +267,7 @@ function CVPDFDocument({ cvData, profileName, location, email, phone, linkedin, 
                 {cvData?.professional_summary && (
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Professional Summary</Text>
+                            <Text style={styles.sectionTitle}>Profil Professionnel</Text>
                         </View>
                         <Text style={styles.summaryText}>{cvData.professional_summary}</Text>
                     </View>
@@ -277,7 +277,7 @@ function CVPDFDocument({ cvData, profileName, location, email, phone, linkedin, 
                 {cvData?.skills && cvData.skills.length > 0 && (
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Key Competencies</Text>
+                            <Text style={styles.sectionTitle}>Compétences Clés</Text>
                         </View>
                         <View style={styles.skillsContainer}>
                             {cvData.skills.map((skill, index) => (
@@ -291,7 +291,7 @@ function CVPDFDocument({ cvData, profileName, location, email, phone, linkedin, 
                 {cvData?.work_experience && cvData.work_experience.length > 0 && (
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Professional Experience</Text>
+                            <Text style={styles.sectionTitle}>Expérience Professionnelle</Text>
                         </View>
                         {cvData.work_experience.map((exp, index) => (
                             <View key={index} style={styles.expItem}>
@@ -317,14 +317,14 @@ function CVPDFDocument({ cvData, profileName, location, email, phone, linkedin, 
                 {cvData?.education && cvData.education.length > 0 && (
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Education</Text>
+                            <Text style={styles.sectionTitle}>Formation</Text>
                         </View>
                         {cvData.education.map((edu, index) => (
                             <View key={index} style={styles.eduItem}>
                                 <View style={styles.eduHeaderRow}>
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.eduDegree}>
-                                            {edu.degree}{edu.field ? ` in ${edu.field}` : ''}
+                                            {edu.degree}{edu.field ? ` — ${edu.field}` : ''}
                                         </Text>
                                         <Text style={styles.eduSchool}>{edu.school}</Text>
                                     </View>
@@ -341,18 +341,16 @@ function CVPDFDocument({ cvData, profileName, location, email, phone, linkedin, 
                 {cvData?.projects && cvData.projects.length > 0 && (
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Projects</Text>
+                            <Text style={styles.sectionTitle}>Projets</Text>
                         </View>
                         {cvData.projects.map((proj, index) => (
                             <View key={index} style={styles.expItem}>
-                                <View style={styles.expHeaderRow}>
-                                    <Text style={styles.expTitle}>{proj.title}</Text>
-                                    {proj.tech_stack && proj.tech_stack.length > 0 && (
-                                        <Text style={{ fontSize: 9, color: colors.accent }}>
-                                            {proj.tech_stack.join(' • ')}
-                                        </Text>
-                                    )}
-                                </View>
+                                <Text style={styles.expTitle}>{proj.title}</Text>
+                                {proj.tech_stack && proj.tech_stack.length > 0 && (
+                                    <Text style={{ fontSize: 9, color: colors.accent, marginTop: 2, marginBottom: 4 }}>
+                                        {proj.tech_stack.join(' • ')}
+                                    </Text>
+                                )}
                                 {proj.description && (
                                     <Text style={styles.bullet}>• {proj.description}</Text>
                                 )}
@@ -389,7 +387,7 @@ function CVPDFDocument({ cvData, profileName, location, email, phone, linkedin, 
                 {cvData?.languages && cvData.languages.length > 0 && (
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Languages</Text>
+                            <Text style={styles.sectionTitle}>Langues</Text>
                         </View>
                         <View style={styles.skillsContainer}>
                             {cvData.languages.map((lang, index) => (
@@ -402,7 +400,7 @@ function CVPDFDocument({ cvData, profileName, location, email, phone, linkedin, 
                 {/* ============ ATS KEYWORDS ============ */}
                 {cvData?.matched_keywords && cvData.matched_keywords.length > 0 && (
                     <View style={styles.keywordsSection}>
-                        <Text style={styles.keywordsTitle}>ATS Keywords Matched:</Text>
+                        <Text style={styles.keywordsTitle}>Mots-clés ATS :</Text>
                         <Text style={styles.keywordsText}>
                             {cvData.matched_keywords.join(' | ')}
                         </Text>

@@ -68,6 +68,7 @@ function JobCard({ job, onSwipe }) {
                     location_city: displayJob.location_city,
                     description: displayJob.description,
                     skills: displayJob.skills,
+                    apply_url: displayJob.apply_url,
                     fetched_at: new Date().toISOString()
                 }, {
                     onConflict: 'source,source_job_id'

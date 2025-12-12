@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import createClient from "@/lib/supabase/server";
-import { Sparkles, ArrowRight, Zap, Target, FileText } from "lucide-react";
-import Link from "next/link";
+import HomeButtons from "@/components/HomeButtons";
+import { Zap, Sparkles, FileText } from "lucide-react";
 
 export default async function Home() {
   // Check if user is already logged in
@@ -53,20 +53,7 @@ export default async function Home() {
         </div>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
-          <Link
-            href="/signup"
-            className="flex-1 py-4 px-6 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold rounded-2xl text-center hover:scale-105 transition-transform shadow-lg shadow-[var(--primary)]/30 flex items-center justify-center gap-2"
-          >
-            Get Started <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/login"
-            className="flex-1 py-4 px-6 bg-white/5 border border-white/10 text-white font-semibold rounded-2xl text-center hover:bg-white/10 transition-colors"
-          >
-            Login
-          </Link>
-        </div>
+        <HomeButtons />
       </main>
 
       {/* Footer */}

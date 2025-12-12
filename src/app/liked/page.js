@@ -1,6 +1,7 @@
 import createClient from "@/lib/supabase/server";
 import CVDownloadButton from "@/components/CVDownloadButton";
-import { Briefcase, MapPin, Heart, ChevronLeft } from "lucide-react";
+import CoverLetterDownloadButton from "@/components/CoverLetterDownloadButton";
+import { Briefcase, MapPin, Heart, ChevronLeft, ExternalLink } from "lucide-react";
 
 async function LikedPage() {
     const supabase = await createClient();
@@ -25,10 +26,12 @@ async function LikedPage() {
         .select('*')
         .eq('user_id', user.id);
 
-    // Create a map of job_id to CV content
+    // Create maps for job_id to CV and Cover Letter content
     const cvMap = {};
+    const coverLetterMap = {};
     generatedCVs?.forEach(cv => {
         cvMap[cv.job_id] = cv.cv_content;
+        coverLetterMap[cv.job_id] = cv.cover_letter;
     });
 
     if (!jobLiked || jobLiked.length === 0) {
@@ -80,6 +83,19 @@ async function LikedPage() {
                             <div className="flex items-center gap-2 text-[var(--foreground-dim)] text-xs mb-4">
                                 <MapPin className="w-3.5 h-3.5" />
                                 {app.jobs.location_city}
+
+                                {/* Apply Link */}
+                                {app.jobs.apply_url && (
+                                    <a
+                                        href={app.jobs.apply_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="ml-auto flex items-center gap-1 px-3 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors border border-[var(--primary)]/20"
+                                    >
+                                        <ExternalLink className="w-3 h-3" />
+                                        Postuler
+                                    </a>
+                                )}
                             </div>
 
                             <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
@@ -87,23 +103,35 @@ async function LikedPage() {
                                     <Heart className="w-3 h-3 fill-current" /> Applied
                                 </span>
 
-                                {cvMap[app.job_id] ? (
-                                    <CVDownloadButton
-                                        cvContent={cvMap[app.job_id]}
-                                        jobTitle={app.jobs.title}
-                                        profileName={profile?.full_name}
-                                        location={profile?.location}
-                                        email={profile?.email}
-                                        phone={profile?.phone}
-                                        linkedin={profile?.linkedin_url}
-                                        github={profile?.github_url}
-                                        portfolio={profile?.portfolio_url}
-                                    />
-                                ) : (
-                                    <span className="text-xs text-[var(--foreground-dim)] italic">
-                                        Generating CV...
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {cvMap[app.job_id] ? (
+                                        <>
+                                            <CVDownloadButton
+                                                cvContent={cvMap[app.job_id]}
+                                                jobTitle={app.jobs.title}
+                                                profileName={profile?.full_name}
+                                                location={profile?.location}
+                                                email={profile?.email}
+                                                phone={profile?.phone}
+                                                linkedin={profile?.linkedin_url}
+                                                github={profile?.github_url}
+                                                portfolio={profile?.portfolio_url}
+                                            />
+                                            {coverLetterMap[app.job_id] && (
+                                                <CoverLetterDownloadButton
+                                                    coverLetterContent={coverLetterMap[app.job_id]}
+                                                    jobTitle={app.jobs.title}
+                                                    profile={profile}
+                                                    job={app.jobs}
+                                                />
+                                            )}
+                                        </>
+                                    ) : (
+                                        <span className="text-xs text-[var(--foreground-dim)] italic">
+                                            Generating...
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}

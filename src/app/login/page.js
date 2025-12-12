@@ -7,20 +7,31 @@ function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
     const supabase = createClient();
     const router = useRouter();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-        });
-        if (error) {
-            setError(error.message);
-        }
-        else {
-            router.push('/jobs');
+        setLoading(true);
+        setError(null);
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+            if (error) {
+                setError(error.message);
+                setLoading(false);
+            }
+            else {
+                router.push('/jobs');
+                // Don't set loading false here to prevent flash before redirect
+            }
+        } catch (err) {
+            setError(err.message);
+            setLoading(false);
         }
     }
 
@@ -42,7 +53,8 @@ function Login() {
                             placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                            disabled={loading}
+                            className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] disabled:opacity-50"
                         />
                     </div>
                     <div>
@@ -54,14 +66,23 @@ function Login() {
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)]"
+                            disabled={loading}
+                            className="w-full px-4 py-3 bg-[var(--surface)] border border-white/10 rounded-xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] disabled:opacity-50"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="w-full py-3 bg-[var(--primary)] text-black font-semibold rounded-xl hover:glow-primary transition-all active:scale-[0.98]"
+                        disabled={loading}
+                        className="w-full py-3 bg-[var(--primary)] text-black font-semibold rounded-xl hover:glow-primary transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        Login
+                        {loading ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                <span>Logging in...</span>
+                            </>
+                        ) : (
+                            "Login"
+                        )}
                     </button>
                 </form>
 
