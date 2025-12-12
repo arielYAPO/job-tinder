@@ -3,29 +3,50 @@ import createClient from "@/lib/supabase/server";
 import LogoutButton from "@/components/LogoutButton";
 import JobsPageClient from "@/components/JobPageClient";
 import { User, Heart } from "lucide-react";
+import { calculateProfileStrength, getMissingItems } from "@/lib/profileUtils";
 
 async function JobsPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     // ==========================================
-    // STEP 1: Fetch from all sources
+    // STEP 1: Fetch user profile data for onboarding
+    // ==========================================
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+    const { data: experiences } = await supabase
+        .from('experiences')
+        .select('*')
+        .eq('user_id', user.id);
+
+    const { data: education } = await supabase
+        .from('education')
+        .select('*')
+        .eq('user_id', user.id);
+
+    // Calculate profile strength for onboarding
+    const profileStrength = calculateProfileStrength(profile, experiences, education);
+    const missingItems = getMissingItems(profile, experiences, education);
+
+    // ==========================================
+    // STEP 2: Fetch jobs from all sources
     // ==========================================
 
-    // 1A. Database jobs (manual + linkedin)
+    // Database jobs (manual + linkedin)
     const { data: dbJobs } = await supabase
         .from('jobs')
         .select('*')
         .in('source', ['manual', 'linkedin']);
 
-    // NOTE: La Bonne Alternance API fetch removed for now (not enough jobs)
-    // Can re-enable later if needed
-
     // All jobs come from database only
     const allJobs = dbJobs || [];
 
     // ==========================================
-    // STEP 2: Filter out swiped jobs
+    // STEP 3: Filter out swiped jobs
     // ==========================================
 
     const { data: swipes } = await supabase
@@ -65,7 +86,11 @@ async function JobsPage() {
                     </div>
                 </div>
 
-                <JobsPageClient jobs={freshJobs} />
+                <JobsPageClient
+                    jobs={freshJobs}
+                    profileStrength={profileStrength}
+                    missingItems={missingItems}
+                />
             </div>
         </div>
     )

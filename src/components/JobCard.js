@@ -43,14 +43,15 @@ function JobCard({ job, onSwipe }) {
     };
 
     const handleLike = async () => {
+        // ✅ INSTANT UI RESPONSE - Trigger swipe animation immediately
+        if (onSwipe) onSwipe('right');
         setLoading(true);
 
+        // 🔄 BACKGROUND PROCESSING - Don't block the UI
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
-            // ==========================================
             // STEP 1: Upsert job to database
-            // ==========================================
             console.log('Upserting job:', {
                 source: displayJob.source,
                 source_job_id: displayJob.source_job_id,
@@ -78,18 +79,17 @@ function JobCard({ job, onSwipe }) {
 
             if (upsertError) {
                 console.error('Upsert error:', upsertError);
-                throw new Error(`Failed to store job: ${upsertError.message}`);
+                return; // Silent fail - UI already moved on
             }
 
             if (!storedJob) {
-                throw new Error('Upsert returned no data');
+                console.error('Upsert returned no data');
+                return;
             }
 
             console.log('Job stored:', storedJob);
 
-            // ==========================================
             // STEP 2: Record swipe
-            // ==========================================
             await supabase.from('swipes').insert({
                 user_id: user.id,
                 job_id: storedJob.id,
@@ -98,19 +98,15 @@ function JobCard({ job, onSwipe }) {
                 action: 'like'
             });
 
-            // ==========================================
             // STEP 3: Create application
-            // ==========================================
             await supabase.from('applications').insert({
                 user_id: user.id,
                 job_id: storedJob.id,
                 status: 'draft'
             });
 
-            // ==========================================
-            // STEP 4: Generate tailored CV
-            // ==========================================
-            await fetch('/api/generate-cv', {
+            // STEP 4: Generate tailored CV (fire and forget)
+            fetch('/api/generate-cv', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -119,30 +115,34 @@ function JobCard({ job, onSwipe }) {
                 })
             });
 
-            // Redirect to liked page to see the result
-            router.push('/liked');
+            // ❌ REMOVED: router.push('/liked') - Let user keep swiping!
 
         } catch (error) {
             console.error('❌ Like action failed:', error);
-            alert(`Error: ${error.message}`);
+            // Silent fail - UI already moved on (Optimistic UI)
         } finally {
             setLoading(false);
-            if (onSwipe) onSwipe('right');
         }
     };
 
     const handlePass = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-
-        await supabase.from('swipes').insert({
-            user_id: user.id,
-            job_id: null,
-            source: displayJob.source,
-            source_job_id: displayJob.source_job_id,
-            action: 'pass'
-        });
-
+        // ✅ INSTANT UI RESPONSE
         if (onSwipe) onSwipe('left');
+
+        // 🔄 BACKGROUND PROCESSING
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            await supabase.from('swipes').insert({
+                user_id: user.id,
+                job_id: null,
+                source: displayJob.source,
+                source_job_id: displayJob.source_job_id,
+                action: 'pass'
+            });
+        } catch (error) {
+            console.error('Pass swipe failed:', error);
+            // Silent fail
+        }
     };
 
 

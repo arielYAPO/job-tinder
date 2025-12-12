@@ -2,9 +2,11 @@
 import JobFilters from './JobFilters'
 import { useState } from 'react'
 import JobSwiper from './JobSwiper'
+import OnboardingModal from './OnboardingModal'
+import SwipeTutorial from './SwipeTutorial'
 
 
-function JobPageClient({ jobs }) {
+function JobPageClient({ jobs, profileStrength = 100, missingItems = [] }) {
     const [filters, setFilters] = useState({
         location: '',
         contractType: '',
@@ -58,6 +60,15 @@ function JobPageClient({ jobs }) {
 
     return (
         <div>
+            {/* Onboarding Modal - shows if profile < 70% complete */}
+            <OnboardingModal
+                profileStrength={profileStrength}
+                missingItems={missingItems}
+            />
+
+            {/* Swipe Tutorial - shows on first visit */}
+            <SwipeTutorial />
+
             <JobFilters jobs={jobs} filters={filters} onFilterChange={setFilters} />
             <JobSwiper jobs={filteredJobs} />
         </div>
