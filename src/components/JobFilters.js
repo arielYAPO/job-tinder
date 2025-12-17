@@ -43,7 +43,7 @@ function JobFilters({ filters, onFilterChange }) {
                         }`}
                 >
                     <Filter className="w-4 h-4" />
-                    <span>Filters</span>
+                    <span>Filtres</span>
                     {hasFilters && (
                         <span className="w-2 h-2 bg-[var(--secondary)] rounded-full animate-pulse" />
                     )}
@@ -55,13 +55,13 @@ function JobFilters({ filters, onFilterChange }) {
                 <div className="glass p-5 rounded-2xl border border-white/10 shadow-xl max-w-sm mx-auto">
 
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Refine Search</h3>
+                        <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Affiner</h3>
                         {hasFilters && (
                             <button
                                 onClick={handleClear}
                                 className="text-xs text-[var(--foreground-muted)] hover:text-white flex items-center gap-1"
                             >
-                                <X className="w-3 h-3" /> Clear all
+                                <X className="w-3 h-3" /> Effacer
                             </button>
                         )}
                     </div>
@@ -75,7 +75,7 @@ function JobFilters({ filters, onFilterChange }) {
                             <input
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
-                                placeholder="City (e.g. Paris, Lyon)..."
+                                placeholder="Ville (ex: Paris, Lyon)..."
                                 className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-black/30 transition-all"
                             />
                         </div>
@@ -90,7 +90,7 @@ function JobFilters({ filters, onFilterChange }) {
                                 onChange={(e) => setContractType(e.target.value)}
                                 className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-black/30 transition-all appearance-none cursor-pointer"
                             >
-                                <option value="" className="bg-gray-900">All Contract Types</option>
+                                <option value="" className="bg-gray-900">Types de contrat</option>
                                 <option value="alternance" className="bg-gray-900">Alternance</option>
                                 <option value="apprentissage" className="bg-gray-900">Apprentissage</option>
                                 <option value="stage" className="bg-gray-900">Stage</option>
@@ -109,7 +109,7 @@ function JobFilters({ filters, onFilterChange }) {
                                 onChange={(e) => setSource(e.target.value)}
                                 className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-black/30 transition-all appearance-none cursor-pointer"
                             >
-                                <option value="" className="bg-gray-900">All Sources</option>
+                                <option value="" className="bg-gray-900">Toutes les sources</option>
                                 <option value="linkedin" className="bg-gray-900">LinkedIn</option>
                                 <option value="labonnealternance" className="bg-gray-900">La Bonne Alternance</option>
                             </select>
@@ -128,7 +128,7 @@ function JobFilters({ filters, onFilterChange }) {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] group-hover:text-white transition-colors">
                                 <Laptop className="w-4 h-4" />
-                                <span>Remote only</span>
+                                <span>Télétravail uniquement</span>
                             </div>
                         </label>
 
@@ -145,7 +145,7 @@ function JobFilters({ filters, onFilterChange }) {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] group-hover:text-white transition-colors">
                                 <User className="w-4 h-4" />
-                                <span>With recruiter info</span>
+                                <span>Avec info recruteur</span>
                             </div>
                         </label>
 
@@ -154,7 +154,7 @@ function JobFilters({ filters, onFilterChange }) {
                             onClick={handleApply}
                             className="w-full py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold rounded-xl shadow-lg shadow-[var(--primary)]/20 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all mt-1"
                         >
-                            Apply Filters
+                            Appliquer
                         </button>
                     </div>
                 </div>

@@ -35,9 +35,10 @@ function Signup() {
             else {
                 await supabase.from('profiles').insert({
                     user_id: data.user.id,
-                    full_name: name
+                    full_name: name,
+                    onboarding_step: 0
                 });
-                router.push('/jobs');
+                router.push('/onboarding');
                 // Don't set loading false here to prevent flash before redirect
             }
         } catch (err) {

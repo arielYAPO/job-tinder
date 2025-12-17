@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Building2, X, Heart, Sparkles, Briefcase, Clock, GraduationCap, Laptop, Wand2, Code, Target, Users, Gift, Loader2, DollarSign, User, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import he from 'he';
 
 function JobCard({ job, onSwipe }) {
     const supabase = createClient();
@@ -13,6 +14,30 @@ function JobCard({ job, onSwipe }) {
     const [simplifiedData, setSimplifiedData] = useState(null);
 
     const displayJob = job;
+
+    // Normalize whitespace for preview (removes empty tags, multiple line breaks, extra spaces)
+    const normalizeForPreview = (html = "") => {
+        return html
+            .replace(/<p>\s*<\/p>/gi, "")           // Remove empty <p> tags
+            .replace(/<br\s*\/?>/gi, " ")           // Replace <br> with space
+            .replace(/\s{2,}/g, " ")                // Multiple spaces → single space
+            .replace(/\n{2,}/g, "\n")               // Multiple newlines → single
+            .trim();
+    };
+
+    // Strip HTML tags and decode entities for plain text preview (SSR-safe)
+    const stripHtml = (html = "") => {
+        // First strip tags
+        let text = html
+            .replace(/<[^>]*>/g, " ")               // Remove all HTML tags
+            .replace(/\s{2,}/g, " ")                // Multiple spaces → single space
+            .trim();
+
+        // Decode HTML entities using he library (works same on server and client)
+        text = he.decode(text);
+
+        return text;
+    };
 
     // AI Simplify handler
     const handleSimplify = async () => {
@@ -115,6 +140,13 @@ function JobCard({ job, onSwipe }) {
                 })
             });
 
+            // STEP 5: Update checklist flags
+            await supabase.from('profiles').update({
+                has_liked_job: true,
+                has_generated_cv: true
+            }).eq('user_id', user.id);
+            console.log('✅ Checklist flags updated (has_liked_job, has_generated_cv)');
+
             // ❌ REMOVED: router.push('/liked') - Let user keep swiping!
 
         } catch (error) {
@@ -199,7 +231,7 @@ function JobCard({ job, onSwipe }) {
             {/* Subtle glow background */}
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 via-transparent to-[var(--secondary)]/5 pointer-events-none" />
 
-            <div className="relative flex-1 flex flex-col">
+            <div className="relative flex-1 min-h-0 flex flex-col">
                 {/* Header */}
                 <div className="mb-6">
                     <h2 className="text-3xl font-bold text-white mb-2 leading-tight tracking-tight">{displayJob.title}</h2>
@@ -254,192 +286,204 @@ function JobCard({ job, onSwipe }) {
                 </div>
 
                 {/* Description - Scrollable area with HTML rendering */}
-                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar mask-fade-bottom max-h-[300px]">
-                    {/* Simplified View */}
-                    {simplifiedData ? (
-                        <div className="space-y-4">
-                            {/* Summary */}
-                            <p className="text-white font-medium">{simplifiedData.summary}</p>
+                {/* Simplified View */}
+                {simplifiedData ? (
+                    <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                        {/* Summary */}
+                        <p className="text-white font-medium">{simplifiedData.summary}</p>
 
-                            {/* Missions */}
-                            {simplifiedData.missions?.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-[var(--primary)] uppercase mb-2">
-                                        <Target className="w-3.5 h-3.5" /> Missions
-                                    </div>
-                                    <ul className="space-y-1 text-sm text-[var(--foreground-muted)]">
-                                        {simplifiedData.missions.map((m, i) => (
-                                            <li key={i} className="flex items-start gap-2">
-                                                <span className="text-[var(--primary)]">•</span> {m}
-                                            </li>
-                                        ))}
-                                    </ul>
+                        {/* Missions */}
+                        {simplifiedData.missions?.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-2 text-xs font-semibold text-[var(--primary)] uppercase mb-2">
+                                    <Target className="w-3.5 h-3.5" /> Missions
                                 </div>
-                            )}
+                                <ul className="space-y-1 text-sm text-[var(--foreground-muted)]">
+                                    {simplifiedData.missions.map((m, i) => (
+                                        <li key={i} className="flex items-start gap-2">
+                                            <span className="text-[var(--primary)]">•</span> {m}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
-                            {/* Tech Stack */}
-                            {simplifiedData.tech_stack?.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 uppercase mb-2">
-                                        <Code className="w-3.5 h-3.5" /> Tech Stack
-                                    </div>
-                                    <div className="flex flex-wrap gap-1">
-                                        {simplifiedData.tech_stack.map((tech, i) => (
-                                            <span key={i} className="px-2 py-1 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-md">
-                                                {tech}
-                                            </span>
-                                        ))}
-                                    </div>
+                        {/* Tech Stack */}
+                        {simplifiedData.tech_stack?.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 uppercase mb-2">
+                                    <Code className="w-3.5 h-3.5" /> Tech Stack
                                 </div>
-                            )}
-
-                            {/* Requirements */}
-                            {simplifiedData.requirements?.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-orange-400 uppercase mb-2">
-                                        <GraduationCap className="w-3.5 h-3.5" /> Prérequis
-                                    </div>
-                                    <ul className="space-y-1 text-sm text-[var(--foreground-muted)]">
-                                        {simplifiedData.requirements.map((r, i) => (
-                                            <li key={i} className="flex items-start gap-2">
-                                                <span className="text-orange-400">•</span> {r}
-                                            </li>
-                                        ))}
-                                    </ul>
+                                <div className="flex flex-wrap gap-1">
+                                    {simplifiedData.tech_stack.map((tech, i) => (
+                                        <span key={i} className="px-2 py-1 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-md">
+                                            {tech}
+                                        </span>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                            {/* Perks */}
-                            {simplifiedData.perks?.length > 0 && (
-                                <div>
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-purple-400 uppercase mb-2">
-                                        <Gift className="w-3.5 h-3.5" /> Avantages
-                                    </div>
-                                    <div className="flex flex-wrap gap-1">
-                                        {simplifiedData.perks.map((p, i) => (
-                                            <span key={i} className="px-2 py-1 text-xs bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-md">
-                                                {p}
-                                            </span>
-                                        ))}
-                                    </div>
+                        {/* Requirements */}
+                        {simplifiedData.requirements?.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-2 text-xs font-semibold text-orange-400 uppercase mb-2">
+                                    <GraduationCap className="w-3.5 h-3.5" /> Prérequis
                                 </div>
-                            )}
+                                <ul className="space-y-1 text-sm text-[var(--foreground-muted)]">
+                                    {simplifiedData.requirements.map((r, i) => (
+                                        <li key={i} className="flex items-start gap-2">
+                                            <span className="text-orange-400">•</span> {r}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
-                            {/* Back to original button */}
-                            <button
-                                onClick={() => setSimplifiedData(null)}
-                                className="text-sm text-[var(--foreground-dim)] hover:text-white"
+                        {/* Perks */}
+                        {simplifiedData.perks?.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-2 text-xs font-semibold text-purple-400 uppercase mb-2">
+                                    <Gift className="w-3.5 h-3.5" /> Avantages
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                    {simplifiedData.perks.map((p, i) => (
+                                        <span key={i} className="px-2 py-1 text-xs bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-md">
+                                            {p}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Back to original button */}
+                        <button
+                            onClick={() => setSimplifiedData(null)}
+                            className="mt-4 py-2 text-sm text-[var(--foreground-dim)] hover:text-white transition-colors"
+                        >
+                            ← Voir la description originale
+                        </button>
+                    </div>
+                ) : displayJob.description ? (
+                    <>
+                        {expanded ? (
+                            // Expanded: Full HTML with scroll
+                            <div
+                                key="expanded"
+                                className="text-[var(--foreground-muted)] text-base leading-relaxed prose prose-invert prose-sm max-w-none
+                                    [&>p]:mb-2 [&>ul]:list-disc [&>ul]:ml-4 [&>ol]:list-decimal [&>ol]:ml-4
+                                    [&>strong]:text-white [&>b]:text-white
+                                    max-h-[180px] overflow-y-auto pr-2 custom-scrollbar"
+                                dangerouslySetInnerHTML={{ __html: displayJob.description }}
+                            />
+                        ) : (
+                            // Collapsed: Plain text preview with line-clamp (no HTML glitches)
+                            <p
+                                key="collapsed"
+                                className="text-[var(--foreground-muted)] text-base leading-relaxed
+                                    max-h-[80px] overflow-hidden line-clamp-4"
                             >
-                                ← Voir la description originale
+                                {stripHtml(displayJob.description)}
+                            </p>
+                        )}
+
+                        {/* Control Buttons Row */}
+                        <div className="flex items-center gap-3 mt-4 pt-2 border-t border-white/5">
+                            {displayJob.description.length > 250 && (
+                                <button
+                                    onClick={() => setExpanded(!expanded)}
+                                    className="flex-1 py-2 text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/10 rounded-lg hover:bg-[var(--primary)]/20 transition-colors"
+                                >
+                                    {expanded ? '▲ Show less' : '▼ Show more'}
+                                </button>
+                            )}
+
+                            <button
+                                onClick={handleSimplify}
+                                disabled={simplifying}
+                                className="flex-1 py-2 flex items-center justify-center gap-2 text-sm font-medium text-white bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
+                            >
+                                {simplifying ? (
+                                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Analyse...</>
+                                ) : (
+                                    <><Wand2 className="w-3.5 h-3.5 text-purple-400" /> Simplifier</>
+                                )}
                             </button>
                         </div>
-                    ) : displayJob.description ? (
-                        <>
-                            <div
-                                className="text-[var(--foreground-muted)] text-base leading-relaxed prose prose-invert prose-sm max-w-none
-                                    [&>p]:mb-3 [&>ul]:list-disc [&>ul]:ml-4 [&>ol]:list-decimal [&>ol]:ml-4
-                                    [&>strong]:text-white [&>b]:text-white"
-                                dangerouslySetInnerHTML={{
-                                    __html: expanded
-                                        ? displayJob.description
-                                        : displayJob.description.slice(0, 200) + (displayJob.description.length > 200 ? '...' : '')
-                                }}
-                            />
-                            <div className="flex items-center gap-4 mt-3">
-                                {displayJob.description.length > 200 && (
-                                    <button
-                                        onClick={() => setExpanded(!expanded)}
-                                        className="text-[var(--primary)] text-sm font-medium hover:underline"
-                                    >
-                                        {expanded ? '▲ Show less' : '▼ Show more'}
-                                    </button>
-                                )}
-                                <button
-                                    onClick={handleSimplify}
-                                    disabled={simplifying}
-                                    className="flex items-center gap-1.5 text-sm font-medium text-[var(--secondary)] hover:text-white transition-colors disabled:opacity-50"
-                                >
-                                    {simplifying ? (
-                                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Analyse...</>
-                                    ) : (
-                                        <><Wand2 className="w-3.5 h-3.5" /> Simplifier</>
-                                    )}
-                                </button>
-                            </div>
-                        </>
-                    ) : (
-                        <p className="text-[var(--foreground-muted)] text-base">No description available</p>
-                    )}
-                </div>
-
-                {/* Skills badges */}
-                {displayJob.skills?.length > 0 && (
-                    <div className="mt-6 pt-6 border-t border-white/5">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-[var(--foreground-dim)] uppercase tracking-wider mb-3">
-                            <Briefcase className="w-3.5 h-3.5" />
-                            Required Skills
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {displayJob.skills.slice(0, 5).map((skill, index) => (
-                                <span
-                                    key={index}
-                                    className="px-3 py-1.5 text-xs font-medium bg-white/5 border border-white/10 rounded-lg text-[var(--foreground)] hover:bg-white/10 hover:border-[var(--primary)]/30 transition-colors cursor-default"
-                                >
-                                    {skill}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
+                    </>
+                ) : (
+                    <p className="text-[var(--foreground-muted)] text-base">No description available</p>
                 )}
+            </div>
 
-                {/* Recruiter Info - LinkedIn Jobs */}
-                {displayJob.recruiter_name && (
-                    <div className="mt-4 pt-4 border-t border-white/5">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)]">
-                                <User className="w-4 h-4" />
-                                <span>Recruiter: <strong className="text-white">{displayJob.recruiter_name}</strong></span>
-                            </div>
-                            {displayJob.recruiter_url && (
-                                <a
-                                    href={displayJob.recruiter_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/20 transition-colors"
-                                >
-                                    <ExternalLink className="w-3 h-3" />
-                                    Contact on LinkedIn
-                                </a>
-                            )}
-                        </div>
+            {/* Skills badges */}
+            {displayJob.skills?.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-white/5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-[var(--foreground-dim)] uppercase tracking-wider mb-3">
+                        <Briefcase className="w-3.5 h-3.5" />
+                        Required Skills
                     </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-4 mt-8 pt-4">
-                    <button
-                        onClick={handlePass}
-                        className="group relative flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/5 border border-white/10 text-[var(--foreground-muted)] font-bold transition-all hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 active:scale-[0.95]"
-                    >
-                        <div className="p-1 rounded-full bg-white/5 group-hover:bg-red-500/20 transition-colors">
-                            <X className="w-5 h-5" />
-                        </div>
-                        Pass
-                    </button>
-
-                    <button
-                        onClick={handleLike}
-                        disabled={loading}
-                        className="group relative flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold shadow-lg shadow-[var(--primary)]/20 hover:scale-105 hover:shadow-xl hover:shadow-[var(--primary)]/40 active:scale-[0.95] transition-all disabled:opacity-70"
-                    >
-                        <div className="p-1 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors">
-                            <Heart className="w-5 h-5 fill-white" />
-                        </div>
-                        {loading ? 'Generating...' : 'Tailor CV'}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                        {displayJob.skills.slice(0, 5).map((skill, index) => (
+                            <span
+                                key={index}
+                                className="px-3 py-1.5 text-xs font-medium bg-white/5 border border-white/10 rounded-lg text-[var(--foreground)] hover:bg-white/10 hover:border-[var(--primary)]/30 transition-colors cursor-default"
+                            >
+                                {skill}
+                            </span>
+                        ))}
+                    </div>
                 </div>
+            )}
+
+            {/* Recruiter Info - LinkedIn Jobs */}
+            {displayJob.recruiter_name && (
+                <div className="mt-4 pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)]">
+                            <User className="w-4 h-4" />
+                            <span>Recruiter: <strong className="text-white">{displayJob.recruiter_name}</strong></span>
+                        </div>
+                        {displayJob.recruiter_url && (
+                            <a
+                                href={displayJob.recruiter_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/20 transition-colors"
+                            >
+                                <ExternalLink className="w-3 h-3" />
+                                Contact on LinkedIn
+                            </a>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-4 mt-8 pt-4">
+                <button
+                    onClick={handlePass}
+                    className="group relative flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/5 border border-white/10 text-[var(--foreground-muted)] font-bold transition-all hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 active:scale-[0.95]"
+                >
+                    <div className="p-1 rounded-full bg-white/5 group-hover:bg-red-500/20 transition-colors">
+                        <X className="w-5 h-5" />
+                    </div>
+                    Pass
+                </button>
+
+                <button
+                    onClick={handleLike}
+                    disabled={loading}
+                    className="group relative flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold shadow-lg shadow-[var(--primary)]/20 hover:scale-105 hover:shadow-xl hover:shadow-[var(--primary)]/40 active:scale-[0.95] transition-all disabled:opacity-70"
+                >
+                    <div className="p-1 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors">
+                        <Heart className="w-5 h-5 fill-white" />
+                    </div>
+                    {loading ? 'Génération...' : 'Générer CV'}
+                </button>
             </div>
         </div>
+
     )
 }
 

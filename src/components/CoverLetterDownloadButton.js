@@ -304,15 +304,26 @@ export default function CoverLetterDownloadButton({ coverLetterContent, jobTitle
                 />
             ).toBlob();
 
-            // Create download link
-            const url = URL.createObjectURL(blob);
+            // Create proper PDF blob with explicit MIME type
+            const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+            const fileName = `Lettre_Motivation_${(jobTitle || 'Candidature').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            console.log('📁 Cover Letter Filename:', fileName);
+
+            // Download using FileSaver approach (more reliable)
+            const url = URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
+            link.style.display = 'none';
             link.href = url;
-            link.download = `Lettre_Motivation_${jobTitle?.replace(/\s+/g, '_') || 'Candidature'}.pdf`;
+            link.download = fileName;
+            link.setAttribute('download', fileName);
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+
+            // Cleanup after small delay
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 100);
         } catch (error) {
             console.error('Error generating cover letter PDF:', error);
             alert('Erreur lors de la génération du PDF: ' + error.message);

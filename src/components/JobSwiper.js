@@ -2,6 +2,7 @@
 import * as React from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import JobCard from "./JobCard";
+import FirstLikeModal from "./onboarding/FirstLikeModal";
 import createClient from "@/lib/supabase/client";
 import { PartyPopper, RefreshCcw, FlaskConical, Heart, X } from "lucide-react";
 
@@ -78,24 +79,53 @@ function SwipeableCard({ job, onSwiped, onSwipe }) {
     );
 }
 
-function JobSwiper({ jobs }) {
+function JobSwiper({ jobs, isFirstLike = false }) {
     const [index, setIndex] = React.useState(0);
     const [direction, setDirection] = React.useState(1);
     const [isResetting, setIsResetting] = React.useState(false);
 
+    // First like modal state
+    const [showFirstLikeModal, setShowFirstLikeModal] = React.useState(false);
+    const [likedJob, setLikedJob] = React.useState(null);
+    const [hasShownModal, setHasShownModal] = React.useState(false);
+
     const current = jobs[index];
+
+    // Mark first like in database
+    const markFirstLikeInDB = React.useCallback(async () => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('profiles').update({ has_liked_job: true }).eq('user_id', user.id);
+        }
+    }, []);
 
     const handleSwiped = React.useCallback((dir) => {
         if (!current) return;
         setDirection(dir);
+
+        // Check if this is a LIKE (right swipe) and it's the first like ever
+        if (dir === 1 && isFirstLike && !hasShownModal) {
+            setLikedJob(current);
+            setShowFirstLikeModal(true);
+            setHasShownModal(true);
+            markFirstLikeInDB();
+        }
+
         setIndex((i) => i + 1);
-    }, [current]);
+    }, [current, isFirstLike, hasShownModal, markFirstLikeInDB]);
 
     // For button-triggered swipes from JobCard
     const handleButtonSwipe = React.useCallback((dirStr) => {
         const dir = dirStr === 'right' ? 1 : -1;
         handleSwiped(dir);
     }, [handleSwiped]);
+
+    // Close first like modal
+    const handleCloseFirstLikeModal = () => {
+        setShowFirstLikeModal(false);
+        setLikedJob(null);
+    };
 
     // Reset only PASSED jobs
     async function handleResetPassed() {
@@ -152,11 +182,19 @@ function JobSwiper({ jobs }) {
 
     return (
         <div className="relative h-full w-full">
+            {/* First Like Modal */}
+            <FirstLikeModal
+                isOpen={showFirstLikeModal}
+                onClose={handleCloseFirstLikeModal}
+                jobTitle={likedJob?.title}
+                jobCompany={likedJob?.company_name}
+            />
+
             <p className="text-sm text-[var(--foreground-dim)] text-center mb-4 tracking-wide">
                 {index + 1} of {jobs.length} jobs
             </p>
 
-            <div className="relative" style={{ minHeight: '70vh' }}>
+            <div className="relative h-[85dvh] min-h-[400px]">
                 <AnimatePresence custom={direction}>
                     <motion.div
                         key={current.source_job_id || index}
@@ -167,7 +205,7 @@ function JobSwiper({ jobs }) {
                             opacity: 0,
                             transition: { duration: 0.25 },
                         })}
-                        className="absolute inset-0"
+                        className="absolute inset-0 flex flex-col"
                     >
                         <SwipeableCard
                             job={current}

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import { Loader2, FileDown } from 'lucide-react';
+import createClient from '@/lib/supabase/client';
 
 // =============================================================================
 // CLASSIC SINGLE COLUMN ATS TEMPLATE
@@ -437,6 +438,7 @@ export default function CVDownloadButton({ cvContent, jobTitle, profileName, loc
             console.log('CV Data for PDF:', cvData);
 
             // Generate PDF blob
+            console.log('📄 Starting PDF generation...');
             const blob = await pdf(
                 <CVPDFDocument
                     cvData={cvData}
@@ -449,16 +451,47 @@ export default function CVDownloadButton({ cvContent, jobTitle, profileName, loc
                     portfolio={portfolio}
                 />
             ).toBlob();
+            console.log('✅ PDF blob created:', blob.size, 'bytes');
 
-            // Create download link
-            const url = URL.createObjectURL(blob);
+            // Create proper PDF blob with explicit MIME type
+            const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+            const fileName = `CV_${(jobTitle || 'Resume').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            console.log('📁 Filename:', fileName);
+
+            // Download using FileSaver approach (more reliable)
+            const url = URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
+            link.style.display = 'none';
             link.href = url;
-            link.download = `CV_${jobTitle?.replace(/\s+/g, '_') || 'Resume'}.pdf`;
+            link.download = fileName;
+            link.setAttribute('download', fileName); // Force download attribute
             document.body.appendChild(link);
+
+            console.log('⬇️ Triggering download...');
             link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+
+            // Cleanup after small delay to ensure download starts
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 100);
+            console.log('✅ Download triggered successfully!');
+
+            // Track download in profiles for checklist
+            try {
+                const supabase = createClient();
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { error } = await supabase.from('profiles').update({ has_downloaded_cv: true }).eq('user_id', user.id);
+                    if (error) {
+                        console.error('❌ Failed to update has_downloaded_cv:', error);
+                    } else {
+                        console.log('✅ Checklist flag updated: has_downloaded_cv = true');
+                    }
+                }
+            } catch (e) {
+                console.log('Could not track download:', e);
+            }
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert('Error generating PDF: ' + error.message);
@@ -476,11 +509,11 @@ export default function CVDownloadButton({ cvContent, jobTitle, profileName, loc
         >
             {downloading ? (
                 <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                    <Loader2 className="w-4 h-4 animate-spin" /> Génération...
                 </>
             ) : (
                 <>
-                    <FileDown className="w-4 h-4" /> Download CV
+                    <FileDown className="w-4 h-4" /> Télécharger CV
                 </>
             )}
         </button>

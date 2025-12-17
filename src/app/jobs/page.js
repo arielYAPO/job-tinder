@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import createClient from "@/lib/supabase/server";
 import LogoutButton from "@/components/LogoutButton";
 import JobsPageClient from "@/components/JobPageClient";
@@ -18,6 +19,13 @@ async function JobsPage() {
         .eq('user_id', user.id)
         .single();
 
+    // Check if onboarding is not complete - redirect to onboarding
+    // onboarding_step < 5 means not complete (null/undefined also means not started)
+    const onboardingStep = profile?.onboarding_step ?? 0;
+    if (onboardingStep < 5) {
+        redirect('/onboarding');
+    }
+
     const { data: experiences } = await supabase
         .from('experiences')
         .select('*')
@@ -31,6 +39,14 @@ async function JobsPage() {
     // Calculate profile strength for onboarding
     const profileStrength = calculateProfileStrength(profile, experiences, education);
     const missingItems = getMissingItems(profile, experiences, education);
+
+    // Onboarding checklist data
+    const onboardingData = {
+        profileComplete: profileStrength >= 80,
+        hasLikedJob: profile?.has_liked_job || false,
+        hasGeneratedCV: profile?.has_generated_cv || false,
+        hasDownloadedCV: profile?.has_downloaded_cv || false,
+    };
 
     // ==========================================
     // STEP 2: Fetch jobs from all sources
@@ -76,11 +92,11 @@ async function JobsPage() {
                     <div className="flex gap-2">
                         <Link href="/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-[var(--foreground-muted)] rounded-xl hover:bg-white/10 hover:text-white transition text-sm font-medium">
                             <User className="w-4 h-4" />
-                            <span>Profile</span>
+                            <span>Profil</span>
                         </Link>
                         <Link href="/liked" className="flex items-center gap-2 px-4 py-2 bg-[var(--secondary)]/20 border border-[var(--secondary)]/30 text-[var(--secondary)] rounded-xl hover:bg-[var(--secondary)]/30 transition text-sm font-medium">
                             <Heart className="w-4 h-4 fill-current" />
-                            <span>My CVs</span>
+                            <span>Mes CV</span>
                         </Link>
                         <LogoutButton />
                     </div>
@@ -90,6 +106,7 @@ async function JobsPage() {
                     jobs={freshJobs}
                     profileStrength={profileStrength}
                     missingItems={missingItems}
+                    onboardingData={onboardingData}
                 />
             </div>
         </div>

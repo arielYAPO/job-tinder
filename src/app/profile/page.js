@@ -147,7 +147,7 @@ function ProfilePage() {
         if (error) {
             setMessage('Error saving profile');
         } else {
-            setMessage('Profile saved!');
+            setMessage('Profil enregistré !');
         }
     };
 
@@ -341,10 +341,10 @@ function ProfilePage() {
             <div className="max-w-lg mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-2xl font-bold text-white">
-                        My <span className="text-neon">Profile</span>
+                        Mon <span className="text-neon">Profil</span>
                     </h1>
                     <a href="/jobs" className="px-4 py-2 bg-[var(--primary)] text-black font-medium rounded-xl hover:glow-primary transition text-sm">
-                        ← Back
+                        ← Retour
                     </a>
                 </div>
 
@@ -361,26 +361,26 @@ function ProfilePage() {
                             <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
                                 <User className="w-6 h-6 text-[var(--primary)]" />
                             </div>
-                            <h2 className="text-xl font-bold text-white tracking-wide">Basic Info</h2>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Infos de base</h2>
                         </div>
 
                         <div className="grid gap-6">
                             <div>
                                 <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
-                                    Full Name
+                                    Nom complet
                                 </label>
                                 <input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     className="w-full px-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none"
-                                    placeholder="Your name"
+                                    placeholder="Votre nom"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
-                                    Skills
+                                    Compétences
                                 </label>
                                 <input
                                     type="text"
@@ -389,12 +389,12 @@ function ProfilePage() {
                                     className="w-full px-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none"
                                     placeholder="React, JavaScript, Python"
                                 />
-                                <p className="text-xs text-[var(--foreground-dim)] mt-2 ml-1">Separate with commas</p>
+                                <p className="text-xs text-[var(--foreground-dim)] mt-2 ml-1">Séparer par des virgules</p>
                             </div>
 
                             <div>
                                 <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
-                                    Languages
+                                    Langues
                                 </label>
                                 <input
                                     type="text"
@@ -403,12 +403,12 @@ function ProfilePage() {
                                     className="w-full px-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none"
                                     placeholder="French (Native), English (Fluent), Spanish (Basic)"
                                 />
-                                <p className="text-xs text-[var(--foreground-dim)] mt-2 ml-1">e.g. French (Native), English (C1)</p>
+                                <p className="text-xs text-[var(--foreground-dim)] mt-2 ml-1">ex. Français (Natif), Anglais (C1)</p>
                             </div>
 
                             <div>
                                 <label className="block text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-2 ml-1">
-                                    Location
+                                    Localisation
                                 </label>
                                 <div className="relative">
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--foreground-dim)]" />
@@ -431,7 +431,7 @@ function ProfilePage() {
                                     onChange={(e) => setBio(e.target.value)}
                                     rows={3}
                                     className="w-full px-5 py-4 bg-[var(--surface-elevated)] border border-white/5 rounded-2xl text-white placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all outline-none resize-none"
-                                    placeholder="Tell us about yourself..."
+                                    placeholder="Parlez-nous de vous..."
                                 />
                             </div>
 
@@ -439,7 +439,7 @@ function ProfilePage() {
                             <div className="border-t border-white/5 pt-6 mt-2">
                                 <div className="flex items-center gap-2 mb-4">
                                     <Mail className="w-4 h-4 text-[var(--secondary)]" />
-                                    <p className="text-sm font-semibold text-[var(--foreground-muted)] tracking-wide">CONTACT INFO</p>
+                                    <p className="text-sm font-semibold text-[var(--foreground-muted)] tracking-wide">COORDONNÉES</p>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -456,7 +456,7 @@ function ProfilePage() {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-[var(--foreground-dim)] mb-1.5 ml-1">Phone</label>
+                                        <label className="block text-xs text-[var(--foreground-dim)] mb-1.5 ml-1">Téléphone</label>
                                         <div className="relative">
                                             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-dim)]" />
                                             <input
@@ -475,7 +475,7 @@ function ProfilePage() {
                             <div className="border-t border-white/5 pt-6 mt-2">
                                 <div className="flex items-center gap-2 mb-4">
                                     <Globe className="w-4 h-4 text-[var(--accent)]" />
-                                    <p className="text-sm font-semibold text-[var(--foreground-muted)] tracking-wide">SOCIAL LINKS</p>
+                                    <p className="text-sm font-semibold text-[var(--foreground-muted)] tracking-wide">LIENS SOCIAUX</p>
                                 </div>
                                 <div className="space-y-4">
                                     <div>
@@ -527,7 +527,7 @@ function ProfilePage() {
                                 className="w-full py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold rounded-2xl hover:glow-primary transition-all shadow-lg shadow-[var(--primary)]/20 mt-4 flex items-center justify-center gap-2"
                             >
                                 <Save className="w-5 h-5" />
-                                Save Profile
+                                Enregistrer
                             </motion.button>
 
                             {message && (
@@ -557,7 +557,7 @@ function ProfilePage() {
                             <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
                                 <Briefcase className="w-6 h-6 text-[var(--primary)]" />
                             </div>
-                            <h2 className="text-xl font-bold text-white tracking-wide">Work Experience</h2>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Expériences</h2>
                         </div>
 
                         {/* Existing experiences as cards */}
@@ -586,7 +586,7 @@ function ProfilePage() {
                                                     {exp.company}
                                                 </div>
                                                 <p className="text-[var(--foreground-dim)] text-xs font-mono uppercase tracking-wider mb-3 bg-white/5 inline-block px-2 py-1 rounded-md">
-                                                    {exp.start_date} → {exp.is_current ? 'Present' : (exp.end_date || 'N/A')}
+                                                    {exp.start_date} → {exp.is_current ? 'Présent' : (exp.end_date || 'N/A')}
                                                 </p>
                                                 {exp.description && (
                                                     <p className="text-[var(--foreground-muted)] text-sm leading-relaxed border-l-2 border-white/10 pl-3">
@@ -600,7 +600,7 @@ function ProfilePage() {
                             </div>
                         ) : (
                             <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-2xl mb-6">
-                                <p className="text-[var(--foreground-dim)] text-sm">No work experience added yet.</p>
+                                <p className="text-[var(--foreground-dim)] text-sm">Aucune expérience ajoutée.</p>
                             </div>
                         )}
 
@@ -615,7 +615,7 @@ function ProfilePage() {
                                     className="w-full py-4 border-2 border-dashed border-white/10 text-[var(--foreground-muted)] rounded-2xl hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all flex items-center justify-center gap-2 font-medium"
                                 >
                                     <Plus className="w-5 h-5" />
-                                    Add Experience
+                                    Ajouter une expérience
                                 </motion.button>
                             ) : (
                                 <motion.div
@@ -627,7 +627,7 @@ function ProfilePage() {
                                     <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
                                         <p className="text-white font-bold flex items-center gap-2">
                                             <Plus className="w-4 h-4 text-[var(--primary)]" />
-                                            New Experience
+                                            Nouvelle expérience
                                         </p>
                                         <button
                                             onClick={() => setShowExpForm(false)}
@@ -642,19 +642,19 @@ function ProfilePage() {
                                             value={newJobTitle}
                                             onChange={(e) => setNewJobTitle(e.target.value)}
                                             className="px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
-                                            placeholder="Job Title *"
+                                            placeholder="Titre du poste *"
                                         />
                                         <input
                                             type="text"
                                             value={newCompany}
                                             onChange={(e) => setNewCompany(e.target.value)}
                                             className="px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] focus:border-[var(--primary)] outline-none"
-                                            placeholder="Company *"
+                                            placeholder="Entreprise *"
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-xs text-[var(--foreground-dim)] mb-1 block">Start Date</label>
+                                            <label className="text-xs text-[var(--foreground-dim)] mb-1 block">Date de début</label>
                                             <input
                                                 type="month"
                                                 value={newStartDate}
@@ -663,7 +663,7 @@ function ProfilePage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-xs text-[var(--foreground-dim)] mb-1 block">End Date</label>
+                                            <label className="text-xs text-[var(--foreground-dim)] mb-1 block">Date de fin</label>
                                             <input
                                                 type="month"
                                                 value={newEndDate}
@@ -680,20 +680,20 @@ function ProfilePage() {
                                             onChange={(e) => setIsCurrent(e.target.checked)}
                                             className="rounded border-white/20 bg-white/5 text-[var(--primary)] focus:ring-0 w-4 h-4"
                                         />
-                                        I currently work here
+                                        Poste actuel
                                     </label>
                                     <textarea
                                         value={newDescription}
                                         onChange={(e) => setNewDescription(e.target.value)}
                                         rows={3}
                                         className="w-full px-4 py-3 bg-[var(--surface)] border border-white/5 rounded-xl text-white text-sm placeholder-[var(--foreground-dim)] resize-none outline-none focus:border-[var(--primary)]"
-                                        placeholder="Describe your role..."
+                                        placeholder="Décrivez votre rôle..."
                                     />
                                     <button
                                         onClick={handleAddExperience}
                                         className="w-full py-3 bg-[var(--primary)] text-black font-bold rounded-xl hover:glow-primary transition active:scale-[0.98]"
                                     >
-                                        Save Experience
+                                        Enregistrer
                                     </button>
                                 </motion.div>
                             )}
@@ -715,7 +715,7 @@ function ProfilePage() {
                             <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
                                 <GraduationCap className="w-6 h-6 text-[var(--primary)]" />
                             </div>
-                            <h2 className="text-xl font-bold text-white tracking-wide">Education</h2>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Formation</h2>
                         </div>
 
                         {/* Existing education as cards */}
@@ -775,7 +775,7 @@ function ProfilePage() {
                                     className="w-full py-4 border-2 border-dashed border-white/10 text-[var(--foreground-muted)] rounded-2xl hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all flex items-center justify-center gap-2 font-medium"
                                 >
                                     <Plus className="w-5 h-5" />
-                                    Add Education
+                                    Ajouter une formation
                                 </motion.button>
                             ) : (
                                 <motion.div
@@ -787,7 +787,7 @@ function ProfilePage() {
                                     <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
                                         <p className="text-white font-bold flex items-center gap-2">
                                             <Plus className="w-4 h-4 text-[var(--primary)]" />
-                                            New Education
+                                            Nouvelle formation
                                         </p>
                                         <button
                                             onClick={() => setShowEduForm(false)}
@@ -832,7 +832,7 @@ function ProfilePage() {
                                         onClick={handleAddEducation}
                                         className="w-full py-3 bg-[var(--primary)] text-black font-bold rounded-xl hover:glow-primary transition active:scale-[0.98]"
                                     >
-                                        Save Education
+                                        Enregistrer
                                     </button>
                                 </motion.div>
                             )}
@@ -854,7 +854,7 @@ function ProfilePage() {
                             <div className="p-2 bg-[var(--primary)]/10 rounded-xl">
                                 <Rocket className="w-6 h-6 text-[var(--primary)]" />
                             </div>
-                            <h2 className="text-xl font-bold text-white tracking-wide">Projects</h2>
+                            <h2 className="text-xl font-bold text-white tracking-wide">Projets</h2>
                         </div>
 
                         {projects.length > 0 ? (
