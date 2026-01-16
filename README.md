@@ -1,88 +1,88 @@
 # JobTinder 💼❤️
 
-A Tinder-style job swiping application built with Next.js and Supabase. Swipe right on jobs you like, left on jobs you pass!
+A Tinder-style job swiping application built with Next.js and Supabase. Optimized for finding jobs through traditional sources and specialized hubs like **Station F**.
 
 ## Features
 
 - 🔐 **Authentication** - Signup, Login, Logout with Supabase Auth
-- 💼 **Job Swiping** - Tinder-style one-at-a-time job cards
+- 💼 **Job Swiping** - Tinder-style one-at-a-time job cards for general listings
+- 🚀 **Station F Experience** - Dedicated portal for over 600+ startup jobs from Station F
+- 🤖 **AI-Powered Tools**:
+  - **Match Scoring** - Personalized matching based on your profile
+  - **CV & Cover Letter Generation** - ATS-optimized documents generated on the fly
+  - **LinkedIn Contact Finder** - Automatically find the CEO or HR contact for any company
+  - **Personalized Pitches** - Custom "Why you?" insights for every company
 - ❤️ **Like to Apply** - Like a job to create a draft application
-- ❌ **Pass** - Skip jobs you're not interested in
-- 📋 **Liked Jobs** - View all jobs you've applied to
-- 👤 **Profile** - Edit your name, skills, and location
-- 🔄 **Reset Passed Jobs** - See jobs you passed again
-- 🔒 **Protected Routes** - Only logged-in users can access the app
+- � **Unified Profile** - Store your skills and objective to power matching engines
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15 (App Router)
-- **Database**: Supabase (PostgreSQL)
-- **Auth**: Supabase Auth
-- **Styling**: Tailwind CSS
+### Frontend
+- **Framework**: Next.js 15 (App Router)
+- **Styling**: Tailwind CSS & Framer Motion (for animations)
+- **Database/Auth**: Supabase (PostgreSQL)
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- Supabase account
-
-### Environment Variables
-
-Create a `.env.local` file:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### Installation
-
-```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)
-
-## Database Schema
-
-### Tables
-
-- **profiles** - User profiles (name, skills, location)
-- **jobs** - Job listings (title, company, description)
-- **swipes** - User swipe actions (like/pass)
-- **applications** - Draft applications for liked jobs
+### Backend (AI & Automation)
+- **Language**: Python 3.12+
+- **Agent Framework**: `browser-use` (Playwright-based AI agents)
+- **LLM**: Google Gemini 2.0 Flash
+- **API**: FastAPI (Fast & Modern Python web framework)
 
 ## Project Structure
 
 ```
-src/
-├── app/
-│   ├── jobs/          # Main job swiping page
-│   ├── liked/         # Liked/applied jobs
-│   ├── login/         # Login page
-│   ├── profile/       # User profile
-│   └── signup/        # Signup page
-├── components/
-│   ├── JobCard.js     # Individual job card
-│   ├── JobSwiper.js   # Swipe controller
-│   └── LogoutButton.js
-├── lib/
-│   └── supabase/      # Supabase client helpers
-└── middleware.js      # Route protection
+├── src/                # Next.js Frontend
+│   ├── app/            # Pages (jobs, liked, profile, stationf)
+│   ├── components/     # UI Components (JobCard, GenerationModal, etc.)
+│   ├── lib/            # Shared utilities
+├── browser-use/        # Python AI Backend
+│   ├── api_server.py   # FastAPI server
+│   ├── Dockerfile      # Deployment config for Render
+│   └── .env.example    # Environment setup
+├── supabase/           # Migrations & Database schema
+└── README.md
 ```
 
-## Future Features
+## Getting Started
 
-- 🤖 AI CV Generation
-- 📧 Email notifications
-- 🔍 Job filtering by skills
-- 📊 Application dashboard
+### Prerequisites
+- Node.js 20+
+- Python 3.12+
+- Supabase project
+- Google Gemini API Key
+
+### Installation
+
+1. **Frontend**:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+2. **Backend**:
+   ```bash
+   cd browser-use
+   python -m venv venv
+   source venv/bin/activate # Windows: .\venv\Scripts\activate
+   pip install -r requirements.txt
+   python api_server.py
+   ```
+
+### Environment Variables
+
+Create `.env.local` in the root and `browser-use/.env` for the backend.
+
+**Root `.env.local`**:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key (optional for scraping)
+```
+
+**`browser-use/.env`**:
+```env
+GOOGLE_API_KEY=your_gemini_api_key
+```
 
 ## License
-
 MIT

@@ -7,6 +7,7 @@ import StepGoal from './StepGoal';
 import StepPreferences from './StepPreferences';
 import StepProfile from './StepProfile';
 import StepSwipeTutorial from './StepSwipeTutorial';
+import { useRouter } from 'next/navigation';
 
 const slideVariants = {
     enter: (direction) => ({
@@ -23,14 +24,17 @@ const slideVariants = {
     })
 };
 
+
 export default function GuidedOnboarding({ profile, experiences, education, projects }) {
     const { step, nextStep, prevStep, completeOnboarding } = useOnboarding();
     const [direction, setDirection] = useState(0);
+    const router = useRouter();
 
     const handleNext = async () => {
         setDirection(1);
         if (step === 4) {
             await completeOnboarding();
+            router.push('/jobs');
         } else {
             await nextStep();
         }

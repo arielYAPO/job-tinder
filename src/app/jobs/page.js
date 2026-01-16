@@ -58,8 +58,38 @@ async function JobsPage() {
         .select('*')
         .in('source', ['manual', 'linkedin']);
 
-    // All jobs come from database only
-    const allJobs = dbJobs || [];
+    // Fetch Station F jobs from Python API
+    let stationFJobs = [];
+    try {
+        // Fetch from Python API running locally
+        const res = await fetch('http://127.0.0.1:8000/scrape/stationf', {
+            next: { revalidate: 60 }, // Cache for 60 seconds
+            cache: 'no-store'
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.jobs) {
+                stationFJobs = data.jobs.map(job => ({
+                    source: 'stationf',
+                    source_job_id: job.url, // Use partial URL as ID
+                    title: job.title,
+                    company_name: job.company,
+                    contract_type: job.contract,
+                    apply_url: job.url.startsWith('http') ? job.url : `https://jobs.stationf.co${job.url}`,
+                    description: "Voir la description complète sur Station F",
+                    location_city: "Paris (Station F)",
+                    remote_mode: null,
+                    is_stationf: true // Flag for UI
+                }));
+            }
+        }
+    } catch (e) {
+        console.warn("Could not fetch Station F jobs (Python API might be offline):", e.message);
+    }
+
+    // Merge all jobs
+    const allJobs = [...(dbJobs || []), ...stationFJobs];
 
     // ==========================================
     // STEP 3: Filter out swiped jobs

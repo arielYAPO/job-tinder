@@ -1,0 +1,88 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CV TEMPLATE - JobTinder (Simple Version)
+% Sans fontawesome pour compatibilité maximale
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.6in]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[colorlinks=true, linkcolor=black, urlcolor=blue]{hyperref}
+\usepackage{xcolor}
+
+% ========== COULEURS ==========
+\definecolor{cvblue}{RGB}{0, 90, 160}
+\definecolor{cvgray}{RGB}{100, 100, 100}
+
+% ========== FORMAT SECTIONS ==========
+\titleformat{\section}{\bfseries\large}{}{0em}{}[\titlerule]
+\titlespacing\section{0pt}{10pt plus 2pt minus 2pt}{6pt plus 1pt minus 1pt}
+\setlist[itemize]{itemsep=2pt, topsep=3pt, leftmargin=*}
+
+\begin{document}
+
+% ==================== EN-TÊTE ====================
+{\Huge\bfseries {{NOM}}} \\[6pt]
+{\large\color{cvblue} {{HEADLINE}}} \\[10pt]
+
+{{LOCATION}} | {{PHONE}} | \href{mailto:{{EMAIL}}}{{{EMAIL}}} \\
+\href{{{LINKEDIN}}}{LinkedIn} {{#GITHUB}}| \href{{{GITHUB}}}{GitHub}{{/GITHUB}} {{#PORTFOLIO}}| \href{{{PORTFOLIO}}}{Portfolio}{{/PORTFOLIO}}
+
+\vspace{12pt}
+
+% ==================== OBJECTIF ====================
+{{#BIO}}
+\textit{{{BIO}}}
+\vspace{8pt}
+{{/BIO}}
+
+% ==================== FORMATION ====================
+\section{Formation}
+{{#EDUCATION}}
+\begin{itemize}[leftmargin=*]
+{{EDUCATION_ITEMS}}
+\end{itemize}
+{{/EDUCATION}}
+{{^EDUCATION}}
+\textit{\color{cvgray}Aucune formation renseignée}
+{{/EDUCATION}}
+
+% ==================== EXPÉRIENCES ====================
+\section{Expériences Professionnelles}
+{{#EXPERIENCES}}
+\begin{itemize}[leftmargin=*]
+{{EXPERIENCE_ITEMS}}
+\end{itemize}
+{{/EXPERIENCES}}
+{{^EXPERIENCES}}
+\textit{\color{cvgray}Aucune expérience renseignée}
+{{/EXPERIENCES}}
+
+% ==================== PROJETS ====================
+\section{Projets}
+{{#PROJECTS}}
+\begin{itemize}[leftmargin=*]
+{{PROJECT_ITEMS}}
+\end{itemize}
+{{/PROJECTS}}
+{{^PROJECTS}}
+\textit{\color{cvgray}Aucun projet renseigné}
+{{/PROJECTS}}
+
+% ==================== COMPÉTENCES ====================
+\section{Compétences}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Techniques :} {{SKILLS}}
+\end{itemize}
+
+% ==================== LANGUES ====================
+{{#LANGUAGES}}
+\section{Langues}
+\begin{itemize}[leftmargin=*]
+{{LANGUAGE_ITEMS}}
+\end{itemize}
+{{/LANGUAGES}}
+
+\end{document}

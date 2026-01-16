@@ -1,35 +1,37 @@
 'use client'
 import { useState } from 'react'
-import { Filter, MapPin, X, Briefcase, Building2, Laptop, User } from 'lucide-react'
+import { Filter, X, Briefcase, Building2, Laptop, Target } from 'lucide-react'
 
-function JobFilters({ filters, onFilterChange }) {
+function JobFilters({ filters, onFilterChange, availableSectors = [], targetRole, onTargetRoleChange }) {
     const [isOpen, setIsOpen] = useState(false);
-    const [location, setLocation] = useState('');
     const [contractType, setContractType] = useState('');
-    const [source, setSource] = useState('');
-    const [remoteOnly, setRemoteOnly] = useState(false);
-    const [hasRecruiter, setHasRecruiter] = useState(false);
+    const [sector, setSector] = useState('');
+    const [stack, setStack] = useState('');
+    const [localTargetRole, setLocalTargetRole] = useState(targetRole || '');
 
     const handleApply = () => {
         onFilterChange({
-            location,
             contractType,
-            source,
-            remoteOnly,
-            hasRecruiter
+            sector,
+            stack,
         });
+        if (onTargetRoleChange) {
+            onTargetRoleChange(localTargetRole);
+        }
     };
 
     const handleClear = () => {
-        setLocation('');
         setContractType('');
-        setSource('');
-        setRemoteOnly(false);
-        setHasRecruiter(false);
-        onFilterChange({ location: '', contractType: '', source: '', remoteOnly: false, hasRecruiter: false });
+        setSector('');
+        setStack('');
+        setLocalTargetRole('');
+        onFilterChange({ contractType: '', sector: '', stack: '' });
+        if (onTargetRoleChange) {
+            onTargetRoleChange('');
+        }
     };
 
-    const hasFilters = location || contractType || source || remoteOnly || hasRecruiter;
+    const hasFilters = contractType || sector || stack || localTargetRole;
 
     return (
         <div className="relative z-50 mb-6">
@@ -67,15 +69,58 @@ function JobFilters({ filters, onFilterChange }) {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        {/* Location Input */}
+
+                        {/* Target Role (NEW - moved from header) */}
+                        <div className="relative group">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-dim)]">
+                                <Target className="w-4 h-4" />
+                            </div>
+                            <select
+                                value={localTargetRole}
+                                onChange={(e) => setLocalTargetRole(e.target.value)}
+                                className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-black/30 transition-all appearance-none cursor-pointer"
+                            >
+                                <option value="" className="bg-gray-900">🎯 Rôle cible (Auto)</option>
+                                <option value="frontend" className="bg-gray-900">Frontend</option>
+                                <option value="backend" className="bg-gray-900">Backend</option>
+                                <option value="fullstack" className="bg-gray-900">Fullstack</option>
+                                <option value="mobile" className="bg-gray-900">Mobile (iOS/Android)</option>
+                                <option value="data_engineer" className="bg-gray-900">Data Engineer</option>
+                                <option value="data_scientist" className="bg-gray-900">Data Scientist</option>
+                                <option value="ml_engineer" className="bg-gray-900">AI / ML Engineer</option>
+                                <option value="llm_engineer" className="bg-gray-900">GenAI / LLM Engineer</option>
+                                <option value="devops" className="bg-gray-900">DevOps / SRE</option>
+                                <option value="product" className="bg-gray-900">Product (PM)</option>
+                                <option value="design" className="bg-gray-900">Design (UX/UI)</option>
+                            </select>
+                        </div>
+
+                        {/* Sector Dropdown */}
+                        <div className="relative group">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-dim)]">
+                                <Building2 className="w-4 h-4" />
+                            </div>
+                            <select
+                                value={sector}
+                                onChange={(e) => setSector(e.target.value)}
+                                className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-black/30 transition-all appearance-none cursor-pointer"
+                            >
+                                <option value="" className="bg-gray-900">Tous les secteurs</option>
+                                {availableSectors.map((s) => (
+                                    <option key={s} value={s} className="bg-gray-900">{s}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Stack Input */}
                         <div className="relative group">
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-dim)] group-focus-within:text-[var(--primary)] transition-colors">
-                                <MapPin className="w-4 h-4" />
+                                <Laptop className="w-4 h-4" />
                             </div>
                             <input
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                placeholder="Ville (ex: Paris, Lyon)..."
+                                value={stack}
+                                onChange={(e) => setStack(e.target.value)}
+                                placeholder="Tech (ex: React, Python)..."
                                 className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-black/30 transition-all"
                             />
                         </div>
@@ -99,62 +144,12 @@ function JobFilters({ filters, onFilterChange }) {
                             </select>
                         </div>
 
-                        {/* Source */}
-                        <div className="relative group">
-                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-dim)]">
-                                <Building2 className="w-4 h-4" />
-                            </div>
-                            <select
-                                value={source}
-                                onChange={(e) => setSource(e.target.value)}
-                                className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-black/30 transition-all appearance-none cursor-pointer"
-                            >
-                                <option value="" className="bg-gray-900">Toutes les sources</option>
-                                <option value="linkedin" className="bg-gray-900">LinkedIn</option>
-                                <option value="labonnealternance" className="bg-gray-900">La Bonne Alternance</option>
-                            </select>
-                        </div>
-
-                        {/* Remote Toggle */}
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                            <div className={`relative w-12 h-6 rounded-full transition-colors ${remoteOnly ? 'bg-[var(--primary)]' : 'bg-white/10'}`}>
-                                <input
-                                    type="checkbox"
-                                    checked={remoteOnly}
-                                    onChange={(e) => setRemoteOnly(e.target.checked)}
-                                    className="sr-only"
-                                />
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${remoteOnly ? 'left-7' : 'left-1'}`} />
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] group-hover:text-white transition-colors">
-                                <Laptop className="w-4 h-4" />
-                                <span>Télétravail uniquement</span>
-                            </div>
-                        </label>
-
-                        {/* Has Recruiter Toggle */}
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                            <div className={`relative w-12 h-6 rounded-full transition-colors ${hasRecruiter ? 'bg-[var(--secondary)]' : 'bg-white/10'}`}>
-                                <input
-                                    type="checkbox"
-                                    checked={hasRecruiter}
-                                    onChange={(e) => setHasRecruiter(e.target.checked)}
-                                    className="sr-only"
-                                />
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${hasRecruiter ? 'left-7' : 'left-1'}`} />
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)] group-hover:text-white transition-colors">
-                                <User className="w-4 h-4" />
-                                <span>Avec info recruteur</span>
-                            </div>
-                        </label>
-
                         {/* Apply Button */}
                         <button
                             onClick={handleApply}
                             className="w-full py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold rounded-xl shadow-lg shadow-[var(--primary)]/20 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all mt-1"
                         >
-                            Appliquer
+                            Appliquer les filtres
                         </button>
                     </div>
                 </div>
