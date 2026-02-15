@@ -58,3 +58,6 @@ browser-use/venv/
 browser-use/__pycache__/
 __pycache__/
 *.pyc
+
+# Backups and Large Files
+*.zip

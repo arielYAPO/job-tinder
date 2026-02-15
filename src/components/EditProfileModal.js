@@ -108,20 +108,7 @@ export default function EditProfileModal({ user, profile, onClose, onSave, force
                         <p className="text-[10px] text-white/40">Sépare les compétences par des virgules.</p>
                     </div>
 
-                    {/* Contract */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-semibold text-blue-300 uppercase tracking-wider">Type de contrat</label>
-                        <select
-                            value={contractType}
-                            onChange={(e) => setContractType(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
-                        >
-                            <option value="alternance">Alternance</option>
-                            <option value="stage">Stage</option>
-                            <option value="cdi">CDI</option>
-                            <option value="cdd">CDD</option>
-                        </select>
-                    </div>
+
 
                 </div>
 

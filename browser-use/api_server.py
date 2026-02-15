@@ -21,6 +21,7 @@ from supabase import create_client, Client
 import google.generativeai as genai
 from browser_use import Agent, ChatGoogle, Controller
 from job_service import JobService
+from find_contact import find_contact
 
 # ============================================================
 # ENV LOADING
@@ -41,11 +42,21 @@ if not api_key:
 # Supabase Client
 supabase_url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+supabase_service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 if not supabase_url or not supabase_key:
     raise ValueError("SUPABASE_URL and SUPABASE_KEY must be set in .env")
 
+# Public client (RLS applied)
 supabase: Client = create_client(supabase_url, supabase_key)
+
+# Admin client (Bypass RLS) - Use ONLY for background tasks
+supabase_admin: Optional[Client] = None
+if supabase_service_key:
+    supabase_admin = create_client(supabase_url, supabase_service_key)
+    print("✅ Supabase Admin Client initialized (Service Role)")
+else:
+    print("⚠️ Supabase Admin Client NOT initialized (Missing SERVICE_ROLE_KEY)")
 
 # Configure Gemini API for enrichment
 if api_key:
@@ -66,7 +77,7 @@ app = FastAPI(
 # CORS - Permet au frontend Next.js d'appeler l'API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -115,7 +126,7 @@ ROLE_KEYWORDS: Dict[str, List[str]] = {
     "backend": ["backend", "api", "fastapi", "django", "nodejs", "express", "python", "java", "spring"],
     "fullstack": ["full stack", "fullstack", "frontend", "backend"],
     "data": ["data", "data engineer", "data analyst", "sql", "etl", "warehouse"],
-    "ml_ai": ["ml", "machine learning", "ai", "ia", "intelligence artificielle", "deep learning", "nlp"],
+    "ml_ai": ["ml", "machine learning", "ai", "ia", "intelligence artificielle", "deep learning", "nlp", "genai", "gen ai", "llm", "rag", "gpt"],
     "devops": ["devops", "sre", "docker", "kubernetes", "ci/cd", "cloud", "aws", "gcp", "azure"],
     "security": ["security", "cyber", "pentest", "soc", "siem"],
 }
@@ -177,6 +188,23 @@ class ScrapeResponse(BaseModel):
 # ============================================================
 # HELPERS
 # ============================================================
+
+def fetch_all_jobs(sb_client, batch_size=1000, require_desc=False):
+    """Fetch ALL jobs from Supabase using pagination to bypass 1000-row limit."""
+    all_jobs = []
+    offset = 0
+    while True:
+        q = sb_client.table("jobs").select("*")
+        if require_desc:
+            q = q.not_.is_("job_description", "null")
+
+        r = q.range(offset, offset + batch_size - 1).execute()
+        batch = r.data or []
+        all_jobs.extend(batch)
+        if len(batch) < batch_size:
+            break
+        offset += batch_size
+    return all_jobs
 
 def normalize_skill(skill: str) -> str:
     """Normalize a skill string for consistent matching."""
@@ -282,7 +310,21 @@ def compute_job_match_score(user_profile, job_data: dict, preferences: Optional[
     intent_score = 0
     matched_intent_keywords = []
     
-    # On utilise ton objectif pour deviner les rôles
+    # BONUS: Direct title match with user objective (e.g., "GenAI Engineer" in both)
+    user_obj_lower = user_profile.objectif.lower()
+    job_title_lower = job_title.lower()
+    
+    # Extract key terms from user objective (2+ char words)
+    obj_terms = [w for w in re.split(r'\W+', user_obj_lower) if len(w) >= 2]
+    title_match_bonus = 0
+    for term in obj_terms:
+        if term in job_title_lower:
+            title_match_bonus += 15
+            if term not in matched_intent_keywords:
+                matched_intent_keywords.append(term)
+    title_match_bonus = min(40, title_match_bonus)  # Cap at 40 pts
+    
+    # On utilise ton objectif pour deviner les roles
     user_roles = infer_user_roles(user_profile.objectif)
     
     # Si on a coché des rôles explicites dans les préférences, on utilise PREFERENCE_ROLES (plus strict)
@@ -360,7 +402,7 @@ def compute_job_match_score(user_profile, job_data: dict, preferences: Optional[
 
 
     # --- 4. SCORE FINAL & PENALTIES ---
-    total_score = intent_score + skill_score + hiring_score
+    total_score = intent_score + skill_score + hiring_score + title_match_bonus
     
     # Pénalité 1 : Ce n'est pas le contrat demandé (ex: CDI au lieu d'Alternance)
     if not is_target_contract:
@@ -393,6 +435,10 @@ def compute_job_match_score(user_profile, job_data: dict, preferences: Optional[
         "job_id": job_data.get("external_id"),
         "title": job_title,
         "company": job_data.get("company_name"),
+        "company_slug": job_data.get("company_slug"),      # NEW: For URL building
+        "logo_url": job_data.get("logo_url"),              # NEW: Company logo from Algolia
+        "location": job_data.get("location"),              # NEW: City, Country
+        "published_at": job_data.get("published_at"),      # NEW: Publication date
         "contract_type": contract_type,
         "score": total_score,
         "details": {
@@ -408,7 +454,10 @@ def compute_job_match_score(user_profile, job_data: dict, preferences: Optional[
         "matched_skills": list(matched_skills),
         "matched_intent": matched_intent_keywords[:5],
         "url": job_data.get("apply_url"),
-        "match_confidence": confidence
+        "match_confidence": confidence,
+        # AI enrichment fields
+        "suggested_outreach_roles": job_data.get("suggested_outreach_roles", []),
+        "enrichment_json": job_data.get("enrichment_json", {})
     }
 
 
@@ -422,9 +471,8 @@ async def match_jobs(req: MatchRequest):
         user_profile = req.user_profile
         prefs = req.preferences or SearchPreferences()
 
-        # Fetch all Station F jobs
-        resp = supabase.table("jobs").select("*").eq("source", "stationf").execute()
-        jobs = resp.data or []
+        # Fetch all jobs using pagination helper
+        jobs = fetch_all_jobs(supabase)
 
         total = len(jobs)
         matches = []
@@ -450,6 +498,120 @@ async def match_jobs(req: MatchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============================================================
+# MATCH BY COMPANY ENDPOINT (Groups jobs per company)
+# ============================================================
+
+class CompanyMatchResponse(BaseModel):
+    success: bool
+    total_companies: int
+    total_jobs: int
+    companies: List[dict] = Field(default_factory=list)
+
+@app.post("/match-by-company", response_model=CompanyMatchResponse)
+async def match_jobs_by_company(req: MatchRequest):
+    """
+    Same as /match, but groups results by company.
+    Returns a structure that matches the frontend design:
+    - Each company has: name, logo_url, location, score (avg), jobs[]
+    """
+    try:
+        user_profile = req.user_profile
+        prefs = req.preferences or SearchPreferences()
+
+        # Fetch all jobs using pagination helper
+        jobs = fetch_all_jobs(supabase)
+
+        # Compute match scores
+        matches = []
+        for j in jobs:
+            r = compute_job_match_score(user_profile, j, prefs)
+            if r is not None:
+                matches.append(r)
+
+
+        # Group by company
+        companies_dict = {}
+        for match in matches:
+            company_name = match.get("company") or "Unknown"
+            
+            if company_name not in companies_dict:
+                companies_dict[company_name] = {
+                    "name": company_name,
+                    "slug": match.get("company_slug", ""),
+                    "logo_url": match.get("logo_url"),
+                    "location": match.get("location", ""),
+                    "jobs": [],
+                    "total_score": 0,
+                    "job_count": 0,
+                    "suggested_roles": match.get("suggested_outreach_roles", []),
+                    "enrichment_json": match.get("enrichment_json", {})
+                }
+            
+            # Add job to company
+            companies_dict[company_name]["jobs"].append({
+                "id": match.get("job_id"),
+                "title": match.get("title"),
+                "type": match.get("contract_type"),
+                "score": match.get("score"),
+                "tag": "Offre Officielle",  # Default tag
+                "url": match.get("url"),
+                "matched_skills": match.get("matched_skills", []),
+                "match_confidence": match.get("match_confidence")
+            })
+            companies_dict[company_name]["total_score"] += match.get("score", 0)
+            companies_dict[company_name]["job_count"] += 1
+
+        # Build final list with MAX scores (best job dictates company relevance)
+        companies_list = []
+        for company_data in companies_dict.values():
+            # Use MAX score instead of AVERAGE to highlight companies with at least one great fit
+            # If a company has 1 perfect job and 10 irrelevant ones, it IS a perfect match for that job.
+            avg_score = max((j["score"] for j in company_data["jobs"]), default=0)
+            
+            if "OVRSEA" in company_data["name"]:
+                print(f"DEBUG_COMPANY: {company_data['name']} has MAX SCORE: {avg_score}")
+
+            # Generate logo initials if no logo_url
+            logo = company_data["logo_url"]
+            if not logo:
+                logo = company_data["name"][:2].upper() if company_data["name"] else "??"
+            
+            # Get AI suggestions if available
+            enrichment = company_data.get("enrichment_json") or {}
+            suggestions = enrichment.get("suggestions", []) if isinstance(enrichment, dict) else []
+            ai_match_reason = None
+            if suggestions:
+                # Use first suggestion's rationale as matchReason
+                ai_match_reason = suggestions[0].get("rationale", "")
+            
+            companies_list.append({
+                "id": hash(company_data["name"]) % 10000,  # Generate stable ID
+                "name": company_data["name"],
+                "slug": company_data["slug"],
+                "logo": logo,
+                "logo_url": company_data["logo_url"],
+                "location": company_data["location"],
+                "score": avg_score,
+                "matchReason": ai_match_reason or f"Match basé sur {company_data['job_count']} opportunité(s) détectée(s).",
+                "jobs": sorted(company_data["jobs"], key=lambda x: x["score"], reverse=True),
+                "suggested_roles": company_data.get("suggested_roles", []),
+                "ai_suggestions": suggestions  # Full AI suggestions with title, rationale, confidence
+            })
+
+        # Sort companies by score (highest first)
+        companies_list.sort(key=lambda x: x["score"], reverse=True)
+
+        return CompanyMatchResponse(
+            success=True,
+            total_companies=len(companies_list),
+            total_jobs=len(matches),
+            companies=companies_list[:50]  # Limit to top 50 companies
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================
@@ -701,6 +863,90 @@ DESCRIPTION: {description}
 """
 
 
+# ============================================================
+# 5.B LAZY ENRICHMENT - TOP 50 STRATEGY
+# ============================================================
+
+class OutreachSuggestion(BaseModel):
+    """A single outreach role suggestion"""
+    role_title: str
+    fit_type: str  # DIRECT, ADJACENT, BRIDGE
+    rationale: str
+    confidence: int
+    key_tasks: List[str] = []
+
+class CompanyDiagnostic(BaseModel):
+    main_hiring_areas: List[str]
+    match_level: str
+
+class CompanyEnrichment(BaseModel):
+    """AI-generated suggestions for a company"""
+    diagnostic: Optional[CompanyDiagnostic] = None
+    suggestions: List[OutreachSuggestion] = []
+    
+    class Config:
+        extra = "ignore"
+
+LAZY_ENRICHMENT_PROMPT = """
+ROLE: Expert en Stratégie de Carrière & Recrutement (Spécialisation Alternance/Junior).
+MISSION: Analyser l'écosystème de recrutement d'une entreprise pour générer 3 pistes de candidature spontanée en alternance.
+
+CONTEXTE CANDIDAT :
+- Objectif : {user_objective}
+- Compétences : {user_skills}
+
+CONTEXTE ENTREPRISE (OFFRES AGREGÉES) :
+{aggregated_company_context}
+
+MÉTHODOLOGIE D'ANALYSE (DIAGNOSTIC AVANT GÉNÉRATION) :
+1. DÉTECTION : Quelles sont les familles de métiers dominantes dans les offres (ex: Engineering, Product, Sales, Data...) ?
+2. MAPPING : Compare l'objectif du candidat avec ces familles.
+   - Si ça matche parfaitement -> Focus sur des rôles "Junior/Support" dans cette équipe.
+   - Si ça ne matche pas -> Cherche des rôles "Transverses" ou "Outils internes" (Bridge).
+3. RÉALISME : Un alternant ne remplace pas un Senior. Il le soutient.
+
+RÈGLES D'OR (ANTI-HALLUCINATION) :
+1. ANCRAGE STRICT : Chaque proposition doit être justifiée par une technologie ou un pôle existant dans les offres. (Si pas de Python dans les offres, pas de proposition Python).
+2. NIVEAU JUNIOR : Interdit de proposer "Manager", "Head of", "Architecte". Utilise : "Assistant", "Junior", "Support", "Chargé de mission", "Développeur".
+3. DIVERSITÉ DES PISTES :
+   - Piste 1 (Directe) : Le poste rêvé adapté en junior (ou le plus proche possible).
+   - Piste 2 (Opérationnelle) : Aide sur les outils, la qualité (QA), la documentation ou les tests.
+   - Piste 3 (Ouverture/Bridge) : Un rôle hybride qui mêle les compétences du candidat aux besoins business de la boîte.
+
+FORMAT DE SORTIE (JSON STRICT) :
+{{
+  "diagnostic": {{
+    "main_hiring_areas": ["Liste des départements qui recrutent (ex: Tech, Sales)"],
+    "match_level": "High/Medium/Low"
+  }},
+  "suggestions": [
+    {{
+      "role_title": "Titre du poste (ex: Alternant Data Engineer - Support Pipeline)",
+      "fit_type": "DIRECT", 
+      "rationale": "Phrase expliquant la valeur ajoutée (ex: 'L'équipe Data grandit, je peux gérer la maintenance des pipelines ETL pour décharger les Seniors.')",
+      "confidence": 90,
+      "key_tasks": ["Exemple de tâche 1 (ex: Tests unitaires)", "Exemple de tâche 2"]
+    }},
+    {{
+      "role_title": "Titre du poste (ex: QA & Automatisation des Tests)",
+      "fit_type": "ADJACENT",
+      "rationale": "...",
+      "confidence": 75,
+      "key_tasks": ["...", "..."]
+    }},
+    {{
+      "role_title": "...",
+      "fit_type": "BRIDGE",
+      "rationale": "...",
+      "confidence": 60,
+      "key_tasks": ["...", "..."]
+    }}
+  ]
+}}
+"""
+
+
+
 def extract_json_object(text: str) -> str:
     """
     Robustly extract JSON object from Gemini output.
@@ -838,6 +1084,313 @@ async def enrich_structured(limit: int = 30, force: bool = False, version: int =
             details=details,
         )
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================
+# 6. LAZY ENRICHMENT ENDPOINT - TOP 50 STRATEGY
+# ============================================================
+
+class LazyEnrichResponse(BaseModel):
+    success: bool
+    companies_processed: int
+    companies_enriched: int
+    companies_failed: int
+    dry_run: bool
+    message: str
+    details: List[dict] = []
+
+
+@app.get("/enrich/lazy-top50", response_model=LazyEnrichResponse)
+async def enrich_lazy_top50(
+    limit: int = 50,
+    dry_run: bool = False,
+    force: bool = False,
+    user_id: Optional[str] = None
+):
+    """
+    Lazy Enrichment Strategy - Top 50 Companies
+    
+    1. Groups all jobs by company_name
+    2. Calculates MAX(job.score) per company (not average)
+    3. Takes only Top 50 companies by score
+    4. Aggregates job context (titles + descriptions) per company
+    5. Calls Gemini once per company with the strategic prompt
+    6. Stores AI suggestions in jobs table (suggested_outreach_roles field)
+    
+    Args:
+        user_id: Optional user ID to fetch profile from Supabase. If not provided, uses default values.
+    """
+    try:
+        # Default profile - MUST match frontend JobDetailView.jsx defaults
+        user_skills_list = ["Python", "React", "Data"]  # Match frontend default
+        user_skills = ", ".join(user_skills_list)
+        user_objective = "Développeur Fullstack"  # Match frontend default
+        
+        if user_id:
+            print(f"📋 Fetching profile for user: {user_id}")
+            # Use Admin client to bypass RLS if available
+            client_to_use = supabase_admin if supabase_admin else supabase
+            
+            profile_resp = client_to_use.table("profiles").select("*").eq("user_id", user_id).single().execute()
+            if profile_resp.data:
+                profile = profile_resp.data
+                # Match frontend: uses skills array, and goal_type/desired_position for objective
+                user_skills_list = profile.get("skills") or ["Python", "React", "Data"]
+                user_skills = ", ".join(user_skills_list)
+                # Frontend uses: objective || desired_position || goal_type
+                user_objective = (
+                    profile.get("desired_position") or 
+                    profile.get("goal_type") or 
+                    "Développeur Fullstack"
+                )
+                print(f"   → Skills: {user_skills[:50]}...")
+                print(f"   → Objective: {user_objective[:50]}...")
+        
+        # Create user profile object for matching algorithm (using SimpleNamespace for attribute access)
+        from types import SimpleNamespace
+        user_profile_for_matching = SimpleNamespace(
+            skills=user_skills_list,
+            objectif=user_objective
+        )
+        
+        print(f"\n🎯 Starting Lazy Enrichment (Top {limit} companies, dry_run={dry_run})")
+        
+        # Fetch all jobs with descriptions using pagination helper
+        jobs = fetch_all_jobs(supabase, require_desc=True)
+        
+        print(f"   Found {len(jobs)} jobs with descriptions")
+        
+        if not jobs:
+            return LazyEnrichResponse(
+                success=True,
+                companies_processed=0,
+                companies_enriched=0,
+                companies_failed=0,
+                dry_run=dry_run,
+                message="No jobs with descriptions found"
+            )
+        
+        # Step 1: Group jobs by company
+        companies_dict: Dict[str, dict] = {}
+        
+        for job in jobs:
+            company_name = job.get("company_name") or "Unknown"
+            
+            if company_name not in companies_dict:
+                companies_dict[company_name] = {
+                    "name": company_name,
+                    "jobs": [],
+                    "max_score": 0,
+                    "job_ids": [],
+                    "already_enriched": False
+                }
+            
+            # Check if already enriched (has non-empty suggested_outreach_roles)
+            existing_suggestions = job.get("suggested_outreach_roles") or []
+            if existing_suggestions and not force:
+                companies_dict[company_name]["already_enriched"] = True
+            
+            companies_dict[company_name]["jobs"].append(job)
+            companies_dict[company_name]["job_ids"].append(job.get("id"))
+            
+            # Calculate REAL job score using the matching algorithm
+            match_result = compute_job_match_score(user_profile_for_matching, job, None)
+            if match_result:
+                job_score = match_result.get("score", 0)
+            else:
+                job_score = 0
+            
+            companies_dict[company_name]["max_score"] = max(
+                companies_dict[company_name]["max_score"],
+                job_score
+            )
+        
+        print(f"   Grouped into {len(companies_dict)} unique companies")
+        
+        # Step 2: Sort by max_score and take top N
+        companies_list = sorted(
+            companies_dict.values(),
+            key=lambda x: x["max_score"],
+            reverse=True
+        )
+        
+        # Filter out already enriched companies (unless force=True)
+        if not force:
+            companies_list = [c for c in companies_list if not c["already_enriched"]]
+        
+        top_companies = companies_list[:limit]
+        
+        print(f"   Processing Top {len(top_companies)} companies")
+        
+        # Initialize Gemini model
+        model = genai.GenerativeModel("gemini-2.5-flash-lite")
+        
+        enriched = 0
+        failed = 0
+        details = []
+        
+        for company in top_companies:
+            company_name = company["name"]
+            
+            # Early return for dry_run - skip all processing
+            if dry_run:
+                print(f"   → {company_name} ({len(company['jobs'])} jobs)... SKIPPED (dry_run)")
+                details.append({
+                    "company": company_name,
+                    "jobs_count": len(company["jobs"]),
+                    "status": "skipped",
+                    "reason": "dry_run"
+                })
+                continue
+            
+            try:
+                # Step 3: Aggregate job context
+                context_parts = [f"ENTREPRISE: {company_name}"]
+                context_parts.append(f"NOMBRE DE POSTES OUVERTS: {len(company['jobs'])}")
+                context_parts.append("\nPOSTES DÉTECTÉS (CONTEXTE) :")
+                
+                # Sort jobs by matching score to prioritize relevant ones for context
+                # We can't use 'score' directly from the group, so let's just pick the first 5
+                # Assuming the company["jobs"] list isn't strictly sorted by match, but that's fine for context.
+                # Actually, let's just take the first 5 jobs.
+                
+                jobs_to_include = company["jobs"][:5] # Max 5 jobs FULL CONTEXT
+                
+                for i, job in enumerate(jobs_to_include, 1):
+                    title = job.get("title") or "Unknown"
+                    desc = (job.get("job_description") or "")[:2000]  # INCREASED LIMIT to 2000 chars
+                    context_parts.append(f"\n--- Poste {i}: {title} ---")
+                    context_parts.append(desc)
+                
+                aggregated_context = "\n".join(context_parts)
+                
+                # Step 4: Call Gemini with the strategic prompt
+                prompt = LAZY_ENRICHMENT_PROMPT.format(
+                    aggregated_company_context=aggregated_context,
+                    user_skills=user_skills,
+                    user_objective=user_objective
+                )
+                
+                print(f"   → {company_name} ({len(company['jobs'])} jobs)...", end=" ")
+                
+                res = model.generate_content(prompt)
+                raw_text = getattr(res, "text", None) or str(res)
+                
+                # Debug: Log raw response
+                print(f"\n   DEBUG raw_text[:200]: {raw_text[:200]}", flush=True)
+                
+                # Parse response
+                json_str = extract_json_object(raw_text)
+                print(f"\n   DEBUG json_str[:200]: {json_str[:200]}", flush=True)
+                
+                payload = json.loads(json_str)
+                
+                # Validate with Pydantic
+                enrichment = CompanyEnrichment(**payload)
+                
+                # Convert suggestions to list of role titles for storage
+                role_titles = [s.role_title for s in enrichment.suggestions]
+                
+                # Step 5: Update all jobs for this company with suggestions
+                for job_id in company["job_ids"]:
+                     # Use Admin client for writes if possible (safer for background tasks)
+                    client_to_use = supabase_admin if supabase_admin else supabase
+                    client_to_use.table("jobs").update({
+                        "suggested_outreach_roles": role_titles,
+                        # Store full response for debugging and UI display (diagnostic, etc.)
+                        "enrichment_json": payload  
+                    }).eq("id", job_id).execute()
+                
+                print("✅")
+                enriched += 1
+                details.append({
+                    "company": company_name,
+                    "jobs_count": len(company["jobs"]),
+                    "suggestions": [s.dict() for s in enrichment.suggestions],
+                    "status": "success"
+                })
+                
+                # Rate limiting: 5 second delay to stay under Gemini quota (15 req/min)
+                import time
+                time.sleep(5)
+                
+            except Exception as e:
+                print(f"❌ {str(e)[:50]}")
+                failed += 1
+                details.append({
+                    "company": company_name,
+                    "jobs_count": len(company["jobs"]),
+                    "status": "failed",
+                    "error": str(e)
+                })
+        
+        return LazyEnrichResponse(
+            success=True,
+            companies_processed=len(top_companies),
+            companies_enriched=enriched,
+            companies_failed=failed,
+            dry_run=dry_run,
+            message=f"Lazy enrichment complete: {enriched} enriched, {failed} failed",
+            details=details
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================
+# CONTACT FINDER ENDPOINT
+# ============================================================
+
+class FindEmailsRequest(BaseModel):
+    company_name: str = Field(..., description="Nom de l'entreprise (ex: OVRSEA, Doctolib)")
+    domain: Optional[str] = Field(None, description="Domaine manuel (ex: ovrsea.com)")
+    first_name: Optional[str] = Field(None, description="Prenom du CEO (override)")
+    last_name: Optional[str] = Field(None, description="Nom du CEO (override)")
+
+@app.post("/api/find-emails")
+async def api_find_emails(request: FindEmailsRequest):
+    """
+    Pipeline Contact Finder :
+    1. DDG -> Domaine commercial
+    2. Pappers -> CEO / President (+ DDG fallback)
+    3. Email Permutation + SMTP Verification
+    """
+    try:
+        result = find_contact(
+            company_name=request.company_name,
+            domain_override=request.domain,
+            first_name=request.first_name,
+            last_name=request.last_name,
+        )
+
+        if not result:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Aucun resultat pour '{request.company_name}'. Essayez avec --domain."
+            )
+
+        return {
+            "success": True,
+            "company": {
+                "brand": request.company_name,
+                "legal_name": result.get("nom_entreprise", request.company_name),
+                "siren": result.get("siren"),
+                "domain": result.get("domain"),
+            },
+            "ceo": {
+                "name": result.get("full_name"),
+                "title": result.get("qualite"),
+            },
+            "email": result.get("email"),
+            "email_status": result.get("email_status"),
+            "email_candidates": result.get("email_candidates", []),
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

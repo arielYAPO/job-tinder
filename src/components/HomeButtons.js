@@ -22,11 +22,11 @@ export default function HomeButtons() {
                 {loading === 'get-started' ? (
                     <>
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Loading...</span>
+                        <span>Chargement...</span>
                     </>
                 ) : (
                     <>
-                        Get Started <ArrowRight className="w-5 h-5" />
+                        C'est parti <ArrowRight className="w-5 h-5" />
                     </>
                 )}
             </button>
@@ -38,10 +38,10 @@ export default function HomeButtons() {
                 {loading === 'login' ? (
                     <>
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Loading...</span>
+                        <span>Chargement...</span>
                     </>
                 ) : (
-                    "Login"
+                    "Connexion"
                 )}
             </button>
         </div>

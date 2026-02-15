@@ -1,88 +1,92 @@
 # JobTinder 💼❤️
 
-A Tinder-style job swiping application built with Next.js and Supabase. Optimized for finding jobs through traditional sources and specialized hubs like **Station F**.
+The ultimate AI-powered job hunting platform for **StationF** startups. Find your perfect match using semantic search, automated enrichment, and personalized pitches.
 
-## Features
+## 🚀 Features
 
-- 🔐 **Authentication** - Signup, Login, Logout with Supabase Auth
-- 💼 **Job Swiping** - Tinder-style one-at-a-time job cards for general listings
-- 🚀 **Station F Experience** - Dedicated portal for over 600+ startup jobs from Station F
-- 🤖 **AI-Powered Tools**:
-  - **Match Scoring** - Personalized matching based on your profile
-  - **CV & Cover Letter Generation** - ATS-optimized documents generated on the fly
-  - **LinkedIn Contact Finder** - Automatically find the CEO or HR contact for any company
-  - **Personalized Pitches** - Custom "Why you?" insights for every company
-- ❤️ **Like to Apply** - Like a job to create a draft application
-- � **Unified Profile** - Store your skills and objective to power matching engines
+### for Candidates
+- **Smart Matching**: Forget keyword search. Our AI analyzes your skills & objective to score every job (0-100%).
+- **Station F Exclusive**: Real-time aggregation of 1000+ startup jobs from the Station F ecosystem.
+- **Why It Matches**: Get an instant explanation of *why* a role fits you (and where you need to upskill).
+- **Personalized Pitch**: AI generates a custom "Why Me" hook for every single opportunity.
+- **Contact Finder (Coming Soon)**: Automatically find the hiring manager's email.
 
-## Tech Stack
+### for Productivity
+- **Match Dashboard**: See your top matches at a glance, ranked by compatibility.
+- **Auto-Enrichment**: Jobs are automatically analyzed in the background to add context and suggestions.
+- **One-Click Apply**: Direct links to apply on the company's site.
 
-### Frontend
-- **Framework**: Next.js 15 (App Router)
-- **Styling**: Tailwind CSS & Framer Motion (for animations)
-- **Database/Auth**: Supabase (PostgreSQL)
+## 🛠 Tech Stack
 
-### Backend (AI & Automation)
-- **Language**: Python 3.12+
-- **Agent Framework**: `browser-use` (Playwright-based AI agents)
-- **LLM**: Google Gemini 2.0 Flash
-- **API**: FastAPI (Fast & Modern Python web framework)
+- **Frontend**: Next.js 15 (App Router), Tailwind CSS, Framer Motion.
+- **Backend (AI)**: Python 3.12, FastAPI, `browser-use` (AI Agent Framework).
+- **Database**: Supabase (PostgreSQL + Auth).
+- **AI Engine**: Google Gemini 2.0 Flash.
 
-## Project Structure
+## 📦 Installation
 
-```
-├── src/                # Next.js Frontend
-│   ├── app/            # Pages (jobs, liked, profile, stationf)
-│   ├── components/     # UI Components (JobCard, GenerationModal, etc.)
-│   ├── lib/            # Shared utilities
-├── browser-use/        # Python AI Backend
-│   ├── api_server.py   # FastAPI server
-│   ├── Dockerfile      # Deployment config for Render
-│   └── .env.example    # Environment setup
-├── supabase/           # Migrations & Database schema
-└── README.md
-```
-
-## Getting Started
-
-### Prerequisites
+### 1. Prerequisites
 - Node.js 20+
 - Python 3.12+
-- Supabase project
-- Google Gemini API Key
+- Supabase Project (with `jobs` and `profiles` tables).
+- Google Gemini API Key.
 
-### Installation
+### 2. Frontend Setup
+```bash
+# Install dependencies
+npm install
 
-1. **Frontend**:
-   ```bash
-   npm install
-   npm run dev
-   ```
+# Run development server
+npm run dev
+```
+OPEN: `http://localhost:3000`
 
-2. **Backend**:
-   ```bash
-   cd browser-use
-   python -m venv venv
-   source venv/bin/activate # Windows: .\venv\Scripts\activate
-   pip install -r requirements.txt
-   python api_server.py
-   ```
+### 3. Backend Setup (The Brain)
+The python backend handles scraping, matching, and enrichment.
 
-### Environment Variables
+```bash
+cd browser-use
 
-Create `.env.local` in the root and `browser-use/.env` for the backend.
+# Create virtual env
+python -m venv venv
+# Activate:
+# Windows: .\venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
 
-**Root `.env.local`**:
+# Install requirements
+pip install -r requirements.txt
+
+# Run server
+python api_server.py
+```
+API DOCS: `http://localhost:8000/docs`
+
+## 🔑 Environment Variables
+
+### Frontend (`.env.local`)
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key (optional for scraping)
 ```
 
-**`browser-use/.env`**:
+### Backend (`browser-use/.env`)
+Create this file in the `browser-use` folder.
+
 ```env
+# Supabase Configuration
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_DIRECT_FROM_DASHBOARD  <-- CRITICAL for AI Enrichment
+
+# AI Provider
 GOOGLE_API_KEY=your_gemini_api_key
 ```
+> **Note**: `SUPABASE_SERVICE_ROLE_KEY` is required for the backend to bypass Row Level Security (RLS) when enriching user profiles automatically.
 
-## License
+## 🤝 Contributing
+1. Fork the repo.
+2. Create a feature branch.
+3. Submit a PR.
+
+## 📄 License
 MIT
