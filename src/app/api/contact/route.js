@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase Admin client (server-side, with service role key or anon key)
+// Supabase Admin client
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -16,7 +16,9 @@ export async function POST(request) {
             return NextResponse.json({ error: "Missing parameters: company and job are required" }, { status: 400 });
         }
 
-        // 0. Récupérer le domaine depuis Supabase (on l'a enrichi avant !)
+        // ==========================================
+        // ÉTAPE 0 - VÉRIFIER LE DOMAINE (AVANT LE CACHE)
+        // ==========================================
         let domain = null;
         try {
             const { data, error } = await supabase
@@ -38,11 +40,38 @@ export async function POST(request) {
         if (!domain) {
             return NextResponse.json({
                 success: false,
-                message: "Domaine de l'entreprise introuvable dans la base de données"
+                message: "Domaine de l'entreprise introuvable dans la base de donnees"
             });
         }
 
-        // 1. Appeler Serper pour trouver le contact sur LinkedIn
+        // ==========================================
+        // ÉTAPE 1 - VÉRIFIER LE CACHE
+        // ==========================================
+        try {
+            const { data: cachedContact } = await supabase
+                .from('generated_contacts')
+                .select('contact_name, contact_emails, linkedin_url')
+                .eq('company_name', company)
+                .eq('job_title', job)
+                .single();
+
+            if (cachedContact) {
+                return NextResponse.json({
+                    success: true,
+                    name: cachedContact.contact_name,
+                    emails: cachedContact.contact_emails || [],
+                    linkedin: cachedContact.linkedin_url || null,
+                    domain: domain,
+                    fromCache: true
+                });
+            }
+        } catch (e) {
+            // Pas en cache, on continue
+        }
+
+        // ==========================================
+        // ÉTAPE 2 - RECHERCHE SERPER
+        // ==========================================
         const serperApiKey = process.env.SERPER_API_KEY;
         if (!serperApiKey) {
             return NextResponse.json({ error: "Server misconfiguration: Missing API Key" }, { status: 500 });
@@ -65,27 +94,51 @@ export async function POST(request) {
 
         const data = await serperResponse.json();
         let foundName = null;
+        let linkedinUrl = null;
 
         if (data.organic && data.organic.length > 0) {
-            const firstTitle = data.organic[0].title;
-            // Nettoyage du titre (ex: "Jean Dupont - Dave | LinkedIn" -> "Jean Dupont")
-            foundName = firstTitle.split("-")[0].split("|")[0].trim();
+            const firstResult = data.organic[0];
+            foundName = firstResult.title.split("-")[0].split("|")[0].trim();
+            linkedinUrl = firstResult.link; // URL LinkedIn
         } else {
             return NextResponse.json({
                 success: false,
-                message: "Aucun contact trouvé sur LinkedIn"
+                message: "Aucun contact trouve sur LinkedIn"
             });
         }
 
-        // 2. Générer l'email (Logique "Blindée")
-        const email = generateEmail(foundName, domain);
+        // ==========================================
+        // ÉTAPE 3 - GÉNÉRER LES 3 EMAILS + SAUVEGARDER
+        // ==========================================
+        const emails = generateEmailFormats(foundName, domain);
+
+        if (foundName && emails.length > 0) {
+            try {
+                await supabase
+                    .from('generated_contacts')
+                    .insert([
+                        {
+                            company_name: company,
+                            job_title: job,
+                            contact_name: foundName,
+                            contact_email: emails[0], // Le plus probable (pour compat)
+                            contact_emails: emails,    // Les 3 formats
+                            linkedin_url: linkedinUrl
+                        }
+                    ]);
+            } catch (e) {
+                console.error("Failed to save to cache:", e);
+            }
+        }
 
         return NextResponse.json({
             success: true,
             name: foundName,
-            email: email,
+            emails: emails,
+            linkedin: linkedinUrl,
             domain: domain,
-            confidence: "High"
+            confidence: "High",
+            fromCache: false
         });
 
     } catch (error) {
@@ -94,27 +147,31 @@ export async function POST(request) {
     }
 }
 
-// Fonction utilitaire (l'équivalent de ton code Python)
-function generateEmail(fullname, domain) {
-    // 1. Nettoyage radical (Accents + Minuscules)
+// La nouvelle fonction qui genere les 3 formats !
+function generateEmailFormats(fullname, domain) {
     const cleanName = fullname
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
         .trim();
 
-    // 2. Découpage intelligent
     const parts = cleanName.split(/\s+/);
-
-    if (parts.length === 0) return "";
+    if (parts.length === 0) return [];
 
     const firstname = parts[0];
 
-    // 3. Gestion du Nom de Famille
+    // Format 1 : La startup (julien@)
+    const emails = [`${firstname}@${domain}`];
+
     if (parts.length > 1) {
         const lastname = parts.slice(1).join("");
-        return `${firstname}.${lastname}@${domain}`;
-    } else {
-        return `${firstname}@${domain}`;
+
+        // Format 2 : Le Corporate (julien.cottineau@)
+        emails.push(`${firstname}.${lastname}@${domain}`);
+
+        // Format 3 : Le format "Whitelab" (jcottineau@)
+        emails.push(`${firstname[0]}${lastname}@${domain}`);
     }
+
+    return emails;
 }

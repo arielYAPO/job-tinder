@@ -7,6 +7,8 @@ import { X, ChevronRight, Zap, User, Sparkles } from 'lucide-react';
 import { createBrowserClient } from '@supabase/ssr';
 import { fetchMatchedCompanies, buildUserProfile, buildSearchPreferences, triggerLazyEnrichment } from '@/lib/jobService';
 
+import DynamicLoader from '@/components/ui/DynamicLoader';
+
 // --- SCORE RING COMPONENT ---
 function ScoreRing({ score, size = 76 }) {
     const isHigh = score >= 50;
@@ -100,6 +102,7 @@ export default function JobDetailView() {
     const [contact, setContact] = useState(null);
     const [loadingContact, setLoadingContact] = useState(false);
     const [contactError, setContactError] = useState(null);
+    const [feedbackState, setFeedbackState] = useState('idle'); // idle | selecting | sent
 
     const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -192,6 +195,29 @@ export default function JobDetailView() {
         }
     }, [userProfile]);
 
+    // Reset contact state when company changes
+    useEffect(() => {
+        setContact(null);
+        setContactError(null);
+        setLoadingContact(false);
+        setFeedbackState('idle');
+    }, [selectedCompany]);
+
+    // Handle feedback submission
+    async function handleFeedback(type) {
+        try {
+            await supabase.from('feedbacks').insert([{
+                company_name: selectedCompany?.name || 'Unknown',
+                contact_name: contact?.name || null,
+                feedback_type: type
+            }]);
+            setFeedbackState('sent');
+        } catch (err) {
+            console.error('Feedback error:', err);
+            setFeedbackState('sent'); // Show success anyway for UX
+        }
+    }
+
     // Save profile inline
     async function saveProfile() {
         if (!currentUser) return;
@@ -204,6 +230,7 @@ export default function JobDetailView() {
         }
 
         setSaving(true);
+        setLoading(true); // User feedback: show main loader
         setSaveSuccess(false);
 
         try {
@@ -262,6 +289,7 @@ export default function JobDetailView() {
 
             if (result.success && result.companies) {
                 setCompanies(result.companies);
+                router.refresh(); // Tells Next.js to refresh server components/cache
             }
 
             setIsEnriching(false);
@@ -270,10 +298,10 @@ export default function JobDetailView() {
         } catch (err) {
             console.error('Error saving profile:', err);
             alert('Erreur lors de la sauvegarde');
-            setSaving(false);
-            setIsEnriching(false);
         } finally {
             setSaving(false);
+            setLoading(false); // Hide main loader
+            setIsEnriching(false);
         }
     }
 
@@ -397,11 +425,8 @@ export default function JobDetailView() {
 
                 {/* === LOADING STATE === */}
                 {loading && (
-                    <div className="text-center py-20">
-                        <div className="inline-flex items-center gap-3 text-zinc-400">
-                            <Sparkles className="h-5 w-5 animate-pulse" />
-                            <span>Analyse des matchs en cours...</span>
-                        </div>
+                    <div className="py-20">
+                        <DynamicLoader />
                     </div>
                 )}
 
@@ -681,26 +706,102 @@ export default function JobDetailView() {
                                             )}
 
                                             {contact && (
-                                                <div className="flex items-start gap-4">
-                                                    <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-300 grid place-items-center font-bold text-lg">
-                                                        {contact.name.charAt(0)}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-bold text-white text-lg">{contact.name}</p>
-                                                        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">CTO / Tech Lead</p>
-
-                                                        <div className="flex items-center gap-2 mt-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2">
-                                                            <code className="text-emerald-300 text-sm select-all">
-                                                                {contact.email}
-                                                            </code>
-                                                            <button
-                                                                onClick={() => navigator.clipboard.writeText(contact.email)}
-                                                                className="ml-auto text-zinc-400 hover:text-white"
-                                                                title="Copier"
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                                                            </button>
+                                                <div className="space-y-4">
+                                                    {/* Contact Header */}
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-300 grid place-items-center font-bold text-lg">
+                                                            {contact.name.charAt(0)}
                                                         </div>
+                                                        <div>
+                                                            <p className="font-bold text-white text-lg">{contact.name}</p>
+                                                            <p className="text-xs text-zinc-500 uppercase tracking-wider">CTO / Tech Lead</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* LinkedIn Link */}
+                                                    {contact.linkedin && (
+                                                        <a
+                                                            href={contact.linkedin}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/10 px-3 py-2 text-sm text-blue-300 hover:bg-blue-500/20 transition"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
+                                                            Voir le profil LinkedIn
+                                                        </a>
+                                                    )}
+
+                                                    {/* Emails List */}
+                                                    <div>
+                                                        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Emails suggeres</p>
+                                                        <div className="space-y-2">
+                                                            {(contact.emails || []).map((email, idx) => (
+                                                                <div key={idx} className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2">
+                                                                    <span className="text-xs text-zinc-500 font-mono w-4">{idx + 1}.</span>
+                                                                    <code className="text-emerald-300 text-sm select-all flex-1 truncate">
+                                                                        {email}
+                                                                    </code>
+                                                                    <button
+                                                                        onClick={() => navigator.clipboard.writeText(email)}
+                                                                        className="shrink-0 text-zinc-400 hover:text-white transition"
+                                                                        title="Copier"
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {contact.fromCache && (
+                                                        <p className="text-xs text-zinc-600 text-center mt-2">Depuis le cache</p>
+                                                    )}
+
+                                                    {/* --- BLOC AVERTISSEMENT & FEEDBACK --- */}
+                                                    <div className="mt-4 bg-zinc-800/50 p-3 rounded-lg border border-zinc-700">
+                                                        <p className="text-xs text-zinc-400 mb-3">
+                                                            <span className="font-bold text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded mr-2 text-[10px]">BÊTA</span>
+                                                            Notre IA fait de son mieux, mais peut parfois se tromper. Un doute ? Verifiez le profil LinkedIn.
+                                                        </p>
+
+                                                        {feedbackState === 'idle' && (
+                                                            <button
+                                                                onClick={() => setFeedbackState('selecting')}
+                                                                className="text-xs text-zinc-500 hover:text-red-400 underline flex items-center transition-colors"
+                                                            >
+                                                                Signaler une erreur sur ce contact
+                                                            </button>
+                                                        )}
+
+                                                        {feedbackState === 'selecting' && (
+                                                            <div className="flex flex-wrap gap-2 items-center">
+                                                                <span className="text-xs text-zinc-400 font-medium">Quel est le probleme ?</span>
+                                                                <button
+                                                                    onClick={() => handleFeedback('Mauvais Email')}
+                                                                    className="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 py-1 px-3 rounded-full transition-colors"
+                                                                >
+                                                                    Mauvais Email
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleFeedback('Mauvais LinkedIn')}
+                                                                    className="text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 py-1 px-3 rounded-full transition-colors"
+                                                                >
+                                                                    Mauvais LinkedIn
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setFeedbackState('idle')}
+                                                                    className="text-xs text-zinc-500 hover:text-zinc-300 ml-1"
+                                                                >
+                                                                    Annuler
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {feedbackState === 'sent' && (
+                                                            <p className="text-xs text-emerald-400 font-medium flex items-center">
+                                                                Merci ! Le retour a ete envoye au developpeur.
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
