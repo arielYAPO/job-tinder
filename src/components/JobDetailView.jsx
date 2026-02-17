@@ -1000,24 +1000,37 @@ export default function JobDetailView() {
                                 </div>
                             </div>
 
-                            {/* Footer */}
-                            <div className="p-5 border-t border-white/5 flex items-center justify-end gap-3">
-                                <button
-                                    onClick={saveProfile}
-                                    disabled={saving}
-                                    className="rounded-full border border-white/20 bg-transparent hover:bg-white/5 px-5 py-2 text-sm font-medium text-white transition disabled:opacity-50"
-                                >
-                                    {isEnriching ? (
-                                        <>
-                                            <Sparkles className="h-4 w-4 animate-spin" />
-                                            Analyse IA en cours...
-                                        </>
-                                    ) : saving ? (
-                                        'Sauvegarde...'
-                                    ) : (
-                                        'Sauvegarder & relancer'
-                                    )}
-                                </button>
+                            <div className="p-5 border-t border-white/5">
+                                {usage.searches >= usage.maxSearches ? (
+                                    <div className="text-center">
+                                        <button
+                                            disabled
+                                            className="w-full rounded-full bg-zinc-700 text-zinc-400 px-5 py-2.5 text-sm font-medium cursor-not-allowed opacity-60"
+                                        >
+                                            ⏳ Limite atteinte (Revenez demain)
+                                        </button>
+                                        <p className="text-xs text-zinc-600 mt-2">Vous avez utilisé vos 3 analyses IA gratuites aujourd'hui.</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-end gap-3">
+                                        <button
+                                            onClick={saveProfile}
+                                            disabled={saving}
+                                            className="rounded-full border border-white/20 bg-transparent hover:bg-white/5 px-5 py-2 text-sm font-medium text-white transition disabled:opacity-50"
+                                        >
+                                            {isEnriching ? (
+                                                <>
+                                                    <Sparkles className="h-4 w-4 animate-spin" />
+                                                    Analyse IA en cours...
+                                                </>
+                                            ) : saving ? (
+                                                'Sauvegarde...'
+                                            ) : (
+                                                'Sauvegarder & relancer'
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </motion.section>
                     </motion.div>
