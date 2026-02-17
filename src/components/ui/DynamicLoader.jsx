@@ -1,42 +1,80 @@
 import React, { useState, useEffect } from 'react';
+import { Search, Brain, Building2, Zap, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Les phrases qui vont défiler pour faire patienter l'utilisateur
-const LOADING_MESSAGES = [
-    "🔍 Analyse de votre nouveau rôle cible...",
-    "🧠 Calcul du matching avec notre base de données...",
-    "🏢 Filtrage des startups de Station F...",
-    "⚡️ Finalisation de votre classement personnalisé...",
-    "✨ Presque terminé..."
+// Les étapes et leurs icônes associées
+const LOADING_STEPS = [
+    { icon: Search, text: "Analyse de votre nouveau rôle cible..." },
+    { icon: Brain, text: "Calcul du matching avec notre base de données..." },
+    { icon: Building2, text: "Filtrage des startups de Station F..." },
+    { icon: Zap, text: "Finalisation de votre classement personnalisé..." },
+    { icon: Sparkles, text: "Presque terminé..." }
 ];
 
 export default function DynamicLoader() {
-    const [messageIndex, setMessageIndex] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
-        // Change le texte toutes les 2500 millisecondes (2.5 secondes)
+        // Change l'étape toutes les 2000 millisecondes (2 secondes)
         const interval = setInterval(() => {
-            setMessageIndex((current) => {
-                // S'il arrive à la fin de la liste, il reste sur le dernier message
-                if (current === LOADING_MESSAGES.length - 1) return current;
-                return current + 1;
+            setCurrentIndex((prev) => {
+                if (prev === LOADING_STEPS.length - 1) return prev;
+                return prev + 1;
             });
-        }, 2500);
+        }, 2000);
 
-        // Nettoyage quand le composant disparaît
         return () => clearInterval(interval);
     }, []);
 
+    const CurrentIcon = LOADING_STEPS[currentIndex].icon;
+
     return (
-        <div className="flex flex-col items-center justify-center p-10 space-y-6">
-            {/* Le petit spinner (roue qui tourne) stylé avec Tailwind */}
-            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center justify-center p-10 min-h-[300px]">
+            {/* Conteneur de l'icône avec un cercle animé */}
+            <div className="relative mb-8">
+                <div className="absolute inset-0 rounded-full bg-violet-500/20 animate-ping" />
+                <div className="relative h-20 w-20 rounded-full bg-zinc-900 border border-violet-500/30 grid place-items-center shadow-[0_0_30px_rgba(139,92,246,0.3)]">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentIndex}
+                            initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            exit={{ opacity: 0, scale: 0.5, rotate: 20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <CurrentIcon className="h-10 w-10 text-violet-400" />
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </div>
 
-            {/* Le texte qui change, avec une petite animation "pulse" */}
-            <p className="text-lg font-medium text-gray-700 animate-pulse text-center">
-                {LOADING_MESSAGES[messageIndex]}
-            </p>
+            {/* Texte de l'étape actuelle */}
+            <div className="h-16 flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                    <motion.p
+                        key={currentIndex}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="text-xl font-medium text-white text-center"
+                    >
+                        {LOADING_STEPS[currentIndex].text}
+                    </motion.p>
+                </AnimatePresence>
+            </div>
 
-            <p className="text-sm text-gray-400">
+            {/* Barre de progression subtile */}
+            <div className="w-64 h-1 bg-zinc-800 rounded-full mt-6 overflow-hidden">
+                <motion.div
+                    className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${((currentIndex + 1) / LOADING_STEPS.length) * 100}%` }}
+                    transition={{ duration: 0.5 }}
+                />
+            </div>
+
+            <p className="mt-4 text-sm text-zinc-500">
                 Notre IA évalue plus de 500 entreprises pour vous...
             </p>
         </div>

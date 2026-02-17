@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, Zap, User, Sparkles } from 'lucide-react';
+import { X, ChevronRight, Zap, User, Sparkles, Search, Mail } from 'lucide-react';
 import { createBrowserClient } from '@supabase/ssr';
 import { fetchMatchedCompanies, buildUserProfile, buildSearchPreferences, triggerLazyEnrichment } from '@/lib/jobService';
 
@@ -412,17 +412,19 @@ export default function JobDetailView() {
                     <div className="flex items-center gap-3">
                         {/* Credit Badges */}
                         <div className="hidden sm:flex items-center gap-2">
-                            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium border ${usage.searches >= usage.maxSearches
+                            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border ${usage.searches >= usage.maxSearches
                                 ? 'border-red-500/30 bg-red-500/10 text-red-300'
                                 : 'border-violet-400/20 bg-violet-500/10 text-violet-200'
                                 }`}>
-                                🔍 {usage.maxSearches - usage.searches}/{usage.maxSearches}
+                                <Search className="w-3.5 h-3.5" />
+                                {usage.maxSearches - usage.searches}/{usage.maxSearches}
                             </span>
-                            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium border ${usage.emails >= usage.maxEmails
+                            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border ${usage.emails >= usage.maxEmails
                                 ? 'border-red-500/30 bg-red-500/10 text-red-300'
                                 : 'border-sky-400/20 bg-sky-500/10 text-sky-200'
                                 }`}>
-                                ✉️ {usage.maxEmails - usage.emails}/{usage.maxEmails}
+                                <Mail className="w-3.5 h-3.5" />
+                                {usage.maxEmails - usage.emails}/{usage.maxEmails}
                             </span>
                         </div>
 
