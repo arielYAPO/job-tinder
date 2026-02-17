@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import createClient from '@/lib/supabase/server';
-import { checkRateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Proxy for matching. Auth-only, NO rate limit.
+ * Matching is just scoring (CPU on VPS, fixed cost).
+ * This is called on every page load to display results.
+ */
 export async function POST(request) {
     try {
         const supabase = await createClient();
@@ -14,18 +18,7 @@ export async function POST(request) {
             return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
         }
 
-        // 2. RATE LIMIT (3 searches/day)
-        const { allowed, remaining } = await checkRateLimit(supabase, user.id, 'searches', 3);
-        if (!allowed) {
-            return NextResponse.json({
-                success: false,
-                rateLimited: true,
-                remaining: 0,
-                message: "💎 Limite atteinte : vous avez utilisé vos 3 analyses IA pour aujourd'hui. Revenez demain !"
-            });
-        }
-
-        // 3. FORWARD TO PYTHON BACKEND
+        // 2. FORWARD TO PYTHON BACKEND (no rate limit — matching is free)
         const body = await request.json();
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
@@ -41,10 +34,6 @@ export async function POST(request) {
         }
 
         const data = await backendResponse.json();
-
-        // Add remaining credits to response
-        data.remaining = remaining;
-
         return NextResponse.json(data);
 
     } catch (error) {

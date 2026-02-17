@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import createClient from '@/lib/supabase/server';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Proxy for enrichment. No separate rate limit — it's triggered
- * as part of the "search" flow so the match-proxy limit covers it.
- * But we still require auth to prevent abuse.
+ * Proxy for Gemini enrichment — THIS is the expensive call.
+ * Rate limited to 3/day (each call = Gemini tokens).
+ * Triggered only when user saves/updates their profile.
  */
 export async function GET(request) {
     try {
@@ -18,7 +19,18 @@ export async function GET(request) {
             return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
         }
 
-        // 2. FORWARD TO PYTHON BACKEND
+        // 2. RATE LIMIT (3 enrichments/day — this is where Gemini tokens are spent)
+        const { allowed, remaining } = await checkRateLimit(supabase, user.id, 'searches', 3);
+        if (!allowed) {
+            return NextResponse.json({
+                success: false,
+                rateLimited: true,
+                remaining: 0,
+                message: "💎 Limite atteinte : vous avez utilisé vos 3 analyses IA pour aujourd'hui. Revenez demain !"
+            });
+        }
+
+        // 3. FORWARD TO PYTHON BACKEND
         const { searchParams } = new URL(request.url);
         const limit = searchParams.get('limit') || '20';
         const force = searchParams.get('force') || 'true';
@@ -39,6 +51,7 @@ export async function GET(request) {
         }
 
         const data = await backendResponse.json();
+        data.remaining = remaining;
         return NextResponse.json(data);
 
     } catch (error) {

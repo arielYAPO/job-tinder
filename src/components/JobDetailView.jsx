@@ -186,20 +186,14 @@ export default function JobDetailView() {
                     });
                 }
 
-                // Fetch matched companies
+                // Fetch matched companies (no rate limit — matching is free)
                 const result = await fetchMatchedCompanies(
                     buildUserProfile(profile),
                     buildSearchPreferences({})
                 );
 
-                if (result.rateLimited) {
-                    setRateLimitMessage(result.message);
-                    setError(null);
-                } else if (result.success && result.companies) {
+                if (result.success && result.companies) {
                     setCompanies(result.companies);
-                    if (result.remaining !== undefined) {
-                        setUsage(prev => ({ ...prev, searches: prev.maxSearches - result.remaining }));
-                    }
                 } else {
                     setError('Aucun match trouvé');
                 }
@@ -300,7 +294,15 @@ export default function JobDetailView() {
             // But we'll limit to 10 for speed in this context.
 
             try {
-                await triggerLazyEnrichment(currentUser.id);
+                const enrichResult = await triggerLazyEnrichment(currentUser.id);
+                if (enrichResult.rateLimited) {
+                    setRateLimitMessage(enrichResult.message);
+                    if (enrichResult.remaining !== undefined) {
+                        setUsage(prev => ({ ...prev, searches: prev.maxSearches }));
+                    }
+                } else if (enrichResult.remaining !== undefined) {
+                    setUsage(prev => ({ ...prev, searches: prev.maxSearches - enrichResult.remaining }));
+                }
             } catch (e) {
                 console.warn("Enrichment trigger warning:", e);
             }
@@ -411,14 +413,14 @@ export default function JobDetailView() {
                         {/* Credit Badges */}
                         <div className="hidden sm:flex items-center gap-2">
                             <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium border ${usage.searches >= usage.maxSearches
-                                    ? 'border-red-500/30 bg-red-500/10 text-red-300'
-                                    : 'border-violet-400/20 bg-violet-500/10 text-violet-200'
+                                ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                                : 'border-violet-400/20 bg-violet-500/10 text-violet-200'
                                 }`}>
                                 🔍 {usage.maxSearches - usage.searches}/{usage.maxSearches}
                             </span>
                             <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium border ${usage.emails >= usage.maxEmails
-                                    ? 'border-red-500/30 bg-red-500/10 text-red-300'
-                                    : 'border-sky-400/20 bg-sky-500/10 text-sky-200'
+                                ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                                : 'border-sky-400/20 bg-sky-500/10 text-sky-200'
                                 }`}>
                                 ✉️ {usage.maxEmails - usage.emails}/{usage.maxEmails}
                             </span>
@@ -722,16 +724,34 @@ export default function JobDetailView() {
                                         <div className="mt-3 rounded-xl border border-white/10 bg-zinc-900/50 p-5">
                                             {!contact && !loadingContact && !contactError && (
                                                 <div className="text-center">
-                                                    <p className="text-sm text-zinc-400 mb-4">
-                                                        Besoin de contacter un décideur (CTO) ?
-                                                    </p>
-                                                    <button
-                                                        onClick={handleFindContact}
-                                                        className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2 text-sm font-bold hover:bg-zinc-200 transition"
-                                                    >
-                                                        <Sparkles className="h-4 w-4" />
-                                                        Trouver le CTO
-                                                    </button>
+                                                    {usage.emails >= usage.maxEmails ? (
+                                                        <>
+                                                            <p className="text-sm text-zinc-500 mb-2">
+                                                                Limite de contacts atteinte pour aujourd'hui
+                                                            </p>
+                                                            <button
+                                                                disabled
+                                                                className="inline-flex items-center gap-2 rounded-full bg-zinc-700 text-zinc-400 px-5 py-2 text-sm font-bold cursor-not-allowed opacity-50"
+                                                            >
+                                                                <Sparkles className="h-4 w-4" />
+                                                                Trouver le CTO
+                                                            </button>
+                                                            <p className="text-xs text-zinc-600 mt-2">💎 Revenez demain ou passez Premium</p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <p className="text-sm text-zinc-400 mb-4">
+                                                                Besoin de contacter un décideur (CTO) ?
+                                                            </p>
+                                                            <button
+                                                                onClick={handleFindContact}
+                                                                className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2 text-sm font-bold hover:bg-zinc-200 transition"
+                                                            >
+                                                                <Sparkles className="h-4 w-4" />
+                                                                Trouver le CTO
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             )}
 

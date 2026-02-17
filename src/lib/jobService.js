@@ -20,12 +20,19 @@ export async function triggerLazyEnrichment(userId) {
             }
         });
 
+        const data = await response.json();
+
+        // Handle rate limiting from enrich-proxy
+        if (data.rateLimited) {
+            return { success: false, rateLimited: true, remaining: data.remaining, message: data.message };
+        }
+
         if (!response.ok) {
             console.warn('[JobService] Trigger enrichment failed:', response.status);
             return { success: false };
         }
 
-        return await response.json();
+        return data;
     } catch (error) {
         console.error('[JobService] Error triggering enrichment:', error);
         return { success: false, error };
@@ -34,11 +41,12 @@ export async function triggerLazyEnrichment(userId) {
 
 /**
  * Fetch matched companies with jobs.
- * Goes through /api/match-proxy (auth + 3/day limit).
+ * Goes through /api/match-proxy (auth only, no rate limit).
+ * Matching is free — it's just CPU scoring on the VPS.
  * 
  * @param {Object} userProfile - User profile with skills, objective, etc.
  * @param {Object} preferences - Optional search preferences
- * @returns {Promise<Object>} - { success, total_companies, total_jobs, companies[], remaining?, rateLimited? }
+ * @returns {Promise<Object>} - { success, total_companies, total_jobs, companies[] }
  */
 export async function fetchMatchedCompanies(userProfile, preferences = null) {
     try {
@@ -55,16 +63,6 @@ export async function fetchMatchedCompanies(userProfile, preferences = null) {
 
         const data = await response.json();
 
-        // Handle rate limiting
-        if (data.rateLimited) {
-            return {
-                success: false,
-                rateLimited: true,
-                remaining: 0,
-                message: data.message
-            };
-        }
-
         if (!response.ok) {
             throw new Error(data.detail || data.error || `API error: ${response.status}`);
         }
@@ -79,8 +77,7 @@ export async function fetchMatchedCompanies(userProfile, preferences = null) {
             success: true,
             total_companies: data.total_companies || companies.length,
             total_jobs: data.total_jobs || 0,
-            companies,
-            remaining: data.remaining
+            companies
         };
     } catch (error) {
         console.error('[JobService] Error fetching matched companies:', error);
