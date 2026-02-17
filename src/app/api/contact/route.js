@@ -1,15 +1,33 @@
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Supabase Admin client
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import createClient from '@/lib/supabase/server';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request) {
     try {
+        const supabase = await createClient();
+
+        // ==========================================
+        // ÉTAPE 0 - AUTHENTIFICATION
+        // ==========================================
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            return NextResponse.json({ error: "Non autorisé. Connectez-vous." }, { status: 401 });
+        }
+
+        // ==========================================
+        // ÉTAPE 1 - RATE LIMIT (5 emails/jour)
+        // ==========================================
+        const { allowed, remaining } = await checkRateLimit(supabase, user.id, 'emails', 5);
+        if (!allowed) {
+            return NextResponse.json({
+                success: false,
+                rateLimited: true,
+                remaining: 0,
+                message: "💎 Limite atteinte : vous avez utilisé vos 5 recherches de contact pour aujourd'hui. Revenez demain !"
+            });
+        }
+
         const { company, job } = await request.json();
 
         if (!company || !job) {
@@ -17,11 +35,11 @@ export async function POST(request) {
         }
 
         // ==========================================
-        // ÉTAPE 0 - VÉRIFIER LE DOMAINE (AVANT LE CACHE)
+        // ÉTAPE 2 - VÉRIFIER LE DOMAINE
         // ==========================================
         let domain = null;
         try {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from('jobs')
                 .select('company_url')
                 .eq('company_name', company)
@@ -45,7 +63,7 @@ export async function POST(request) {
         }
 
         // ==========================================
-        // ÉTAPE 1 - VÉRIFIER LE CACHE
+        // ÉTAPE 3 - VÉRIFIER LE CACHE
         // ==========================================
         try {
             const { data: cachedContact } = await supabase
@@ -62,6 +80,7 @@ export async function POST(request) {
                     emails: cachedContact.contact_emails || [],
                     linkedin: cachedContact.linkedin_url || null,
                     domain: domain,
+                    remaining: remaining,
                     fromCache: true
                 });
             }
@@ -70,7 +89,7 @@ export async function POST(request) {
         }
 
         // ==========================================
-        // ÉTAPE 2 - RECHERCHE SERPER
+        // ÉTAPE 4 - RECHERCHE SERPER
         // ==========================================
         const serperApiKey = process.env.SERPER_API_KEY;
         if (!serperApiKey) {
@@ -99,7 +118,7 @@ export async function POST(request) {
         if (data.organic && data.organic.length > 0) {
             const firstResult = data.organic[0];
             foundName = firstResult.title.split("-")[0].split("|")[0].trim();
-            linkedinUrl = firstResult.link; // URL LinkedIn
+            linkedinUrl = firstResult.link;
         } else {
             return NextResponse.json({
                 success: false,
@@ -108,7 +127,7 @@ export async function POST(request) {
         }
 
         // ==========================================
-        // ÉTAPE 3 - GÉNÉRER LES 3 EMAILS + SAUVEGARDER
+        // ÉTAPE 5 - GÉNÉRER LES 3 EMAILS + SAUVEGARDER
         // ==========================================
         const emails = generateEmailFormats(foundName, domain);
 
@@ -121,8 +140,8 @@ export async function POST(request) {
                             company_name: company,
                             job_title: job,
                             contact_name: foundName,
-                            contact_email: emails[0], // Le plus probable (pour compat)
-                            contact_emails: emails,    // Les 3 formats
+                            contact_email: emails[0],
+                            contact_emails: emails,
                             linkedin_url: linkedinUrl
                         }
                     ]);
@@ -137,6 +156,7 @@ export async function POST(request) {
             emails: emails,
             linkedin: linkedinUrl,
             domain: domain,
+            remaining: remaining,
             confidence: "High",
             fromCache: false
         });
@@ -147,7 +167,7 @@ export async function POST(request) {
     }
 }
 
-// La nouvelle fonction qui genere les 3 formats !
+// La fonction qui genere les 3 formats
 function generateEmailFormats(fullname, domain) {
     const cleanName = fullname
         .normalize("NFD")
@@ -159,17 +179,11 @@ function generateEmailFormats(fullname, domain) {
     if (parts.length === 0) return [];
 
     const firstname = parts[0];
-
-    // Format 1 : La startup (julien@)
     const emails = [`${firstname}@${domain}`];
 
     if (parts.length > 1) {
         const lastname = parts.slice(1).join("");
-
-        // Format 2 : Le Corporate (julien.cottineau@)
         emails.push(`${firstname}.${lastname}@${domain}`);
-
-        // Format 3 : Le format "Whitelab" (jcottineau@)
         emails.push(`${firstname[0]}${lastname}@${domain}`);
     }
 

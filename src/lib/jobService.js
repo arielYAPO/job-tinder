@@ -1,23 +1,19 @@
 /**
  * Job Service - API client for job matching
  * 
- * Handles communication with the Python backend API server for job matching.
+ * All calls now go through Next.js API route proxies which handle:
+ * - Authentication (user must be logged in)
+ * - Rate limiting (3 searches/day, 5 emails/day)
+ * - Forwarding to Python backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-
 /**
- * Fetch matched companies with jobs from the backend.
- * Groups jobs by company and returns sorted by match score.
- * 
- * @param {Object} userProfile - User profile with skills, objective, etc.
- * @param {Object} preferences - Optional search preferences
- * @returns {Promise<Object>} - { success, total_companies, total_jobs, companies[] }
+ * Trigger lazy enrichment of company data via Gemini.
+ * Goes through /api/enrich-proxy (auth required, no separate limit).
  */
 export async function triggerLazyEnrichment(userId) {
     try {
-        // limit=20 to be fast enough for UX, force=true to update with new profile
-        const response = await fetch(`${API_BASE_URL}/enrich/lazy-top50?limit=20&force=true&user_id=${userId}`, {
+        const response = await fetch(`/api/enrich-proxy?limit=20&force=true`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -37,16 +33,16 @@ export async function triggerLazyEnrichment(userId) {
 }
 
 /**
- * Fetch matched companies with jobs from the backend.
- * Groups jobs by company and returns sorted by match score.
+ * Fetch matched companies with jobs.
+ * Goes through /api/match-proxy (auth + 3/day limit).
  * 
  * @param {Object} userProfile - User profile with skills, objective, etc.
  * @param {Object} preferences - Optional search preferences
- * @returns {Promise<Object>} - { success, total_companies, total_jobs, companies[] }
+ * @returns {Promise<Object>} - { success, total_companies, total_jobs, companies[], remaining?, rateLimited? }
  */
 export async function fetchMatchedCompanies(userProfile, preferences = null) {
     try {
-        const response = await fetch(`${API_BASE_URL}/match-by-company`, {
+        const response = await fetch('/api/match-proxy', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -57,12 +53,21 @@ export async function fetchMatchedCompanies(userProfile, preferences = null) {
             })
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || `API error: ${response.status}`);
+        const data = await response.json();
+
+        // Handle rate limiting
+        if (data.rateLimited) {
+            return {
+                success: false,
+                rateLimited: true,
+                remaining: 0,
+                message: data.message
+            };
         }
 
-        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.detail || data.error || `API error: ${response.status}`);
+        }
 
         // Transform logo URLs to ensure we have a fallback
         const companies = (data.companies || []).map(company => ({
@@ -74,7 +79,8 @@ export async function fetchMatchedCompanies(userProfile, preferences = null) {
             success: true,
             total_companies: data.total_companies || companies.length,
             total_jobs: data.total_jobs || 0,
-            companies
+            companies,
+            remaining: data.remaining
         };
     } catch (error) {
         console.error('[JobService] Error fetching matched companies:', error);
@@ -84,6 +90,7 @@ export async function fetchMatchedCompanies(userProfile, preferences = null) {
 
 /**
  * Fetch matched jobs (flat list, not grouped by company).
+ * Also goes through proxy for consistency.
  * 
  * @param {Object} userProfile - User profile with skills, objective, etc.
  * @param {Object} preferences - Optional search preferences
@@ -91,23 +98,29 @@ export async function fetchMatchedCompanies(userProfile, preferences = null) {
  */
 export async function fetchMatchedJobs(userProfile, preferences = null) {
     try {
-        const response = await fetch(`${API_BASE_URL}/match`, {
+        const response = await fetch('/api/match-proxy', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 user_profile: userProfile,
-                preferences: preferences
+                preferences: preferences,
+                flat: true
             })
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || `API error: ${response.status}`);
+        const data = await response.json();
+
+        if (data.rateLimited) {
+            return { success: false, rateLimited: true, message: data.message };
         }
 
-        return await response.json();
+        if (!response.ok) {
+            throw new Error(data.detail || `API error: ${response.status}`);
+        }
+
+        return data;
     } catch (error) {
         console.error('[JobService] Error fetching matched jobs:', error);
         throw error;

@@ -104,6 +104,10 @@ export default function JobDetailView() {
     const [contactError, setContactError] = useState(null);
     const [feedbackState, setFeedbackState] = useState('idle'); // idle | selecting | sent
 
+    // Freemium credits state
+    const [usage, setUsage] = useState({ searches: 0, emails: 0, maxSearches: 3, maxEmails: 5 });
+    const [rateLimitMessage, setRateLimitMessage] = useState(null);
+
     const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -164,14 +168,38 @@ export default function JobDetailView() {
 
                 setUserProfile(profile);
 
+                // Load usage credits
+                const { data: usageData } = await supabase
+                    .from('profiles')
+                    .select('searches_used, emails_used, last_reset_date')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (usageData) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const isNewDay = usageData.last_reset_date !== today;
+                    setUsage({
+                        searches: isNewDay ? 0 : (usageData.searches_used || 0),
+                        emails: isNewDay ? 0 : (usageData.emails_used || 0),
+                        maxSearches: 3,
+                        maxEmails: 5
+                    });
+                }
+
                 // Fetch matched companies
                 const result = await fetchMatchedCompanies(
                     buildUserProfile(profile),
                     buildSearchPreferences({})
                 );
 
-                if (result.success && result.companies) {
+                if (result.rateLimited) {
+                    setRateLimitMessage(result.message);
+                    setError(null);
+                } else if (result.success && result.companies) {
                     setCompanies(result.companies);
+                    if (result.remaining !== undefined) {
+                        setUsage(prev => ({ ...prev, searches: prev.maxSearches - result.remaining }));
+                    }
                 } else {
                     setError('Aucun match trouvé');
                 }
@@ -325,8 +353,13 @@ export default function JobDetailView() {
 
             const data = await response.json();
 
-            if (data.success) {
+            if (data.rateLimited) {
+                setContactError(data.message || "Limite atteinte");
+            } else if (data.success) {
                 setContact(data);
+                if (data.remaining !== undefined) {
+                    setUsage(prev => ({ ...prev, emails: prev.maxEmails - data.remaining }));
+                }
             } else {
                 setContactError(data.message || "Contact introuvable");
             }
@@ -375,6 +408,22 @@ export default function JobDetailView() {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        {/* Credit Badges */}
+                        <div className="hidden sm:flex items-center gap-2">
+                            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium border ${usage.searches >= usage.maxSearches
+                                    ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                                    : 'border-violet-400/20 bg-violet-500/10 text-violet-200'
+                                }`}>
+                                🔍 {usage.maxSearches - usage.searches}/{usage.maxSearches}
+                            </span>
+                            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium border ${usage.emails >= usage.maxEmails
+                                    ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                                    : 'border-sky-400/20 bg-sky-500/10 text-sky-200'
+                                }`}>
+                                ✉️ {usage.maxEmails - usage.emails}/{usage.maxEmails}
+                            </span>
+                        </div>
+
                         {isEnriching && (
                             <span className="hidden sm:inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-sm text-violet-200 animate-pulse">
                                 <Sparkles className="h-4 w-4" />
@@ -698,7 +747,8 @@ export default function JobDetailView() {
                                                     <p className="text-sm text-red-400 mb-3">{contactError}</p>
                                                     <button
                                                         onClick={handleFindContact}
-                                                        className="text-xs underline text-zinc-500 hover:text-white"
+                                                        disabled={loadingContact}
+                                                        className="text-xs underline text-zinc-500 hover:text-white disabled:opacity-50"
                                                     >
                                                         Réessayer
                                                     </button>
