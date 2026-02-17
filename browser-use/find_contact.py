@@ -21,7 +21,7 @@ import unicodedata
 from urllib.parse import urlparse
 from typing import List, Optional, Dict
 from dotenv import load_dotenv
-from ddgs import DDGS
+from duckduckgo_search import DDGS
 
 # ============================================================
 # 0. CONFIG
