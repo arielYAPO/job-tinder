@@ -64,13 +64,13 @@ export default async function Home() {
 
         {/* Main Heading */}
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-8 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
-          Trouvez votre prochaine <br className="hidden md:block" />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">opportunité tech.</span>
+          Accédez au <br className="hidden md:block" />
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">Marché Caché.</span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl text-white/40 max-w-2xl mx-auto mb-12 leading-relaxed">
-          Arrêtez de swiper des offres non pertinentes. Scope vous matche avec les meilleures entreprises tech selon vos compétences réelles et votre potentiel, pas juste des mots-clés.
+          Arrêtez de postuler aux mêmes offres que 500 autres candidats. Scope analyse la stack technique des startups pour vous aider à cibler les meilleures entreprises pour vos candidatures spontanées.
         </p>
 
         {/* CTA Buttons */}

@@ -490,6 +490,25 @@ export default function JobDetailView() {
                     </div>
                 )}
 
+                {/* === STRATEGY BANNER === */}
+                {!loading && !error && companies.length > 0 && (
+                    <div className="mb-8 rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                        <div className="flex items-start gap-4">
+                            <div className="shrink-0 w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                <span className="text-xl">💡</span>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-blue-200 text-lg mb-1">Stratégie du Marché Caché</h3>
+                                <p className="text-blue-100/80 text-sm leading-relaxed">
+                                    Les entreprises ci-dessous matchent avec vos compétences. Ce ne sont pas des offres actives, mais des <strong>signaux forts</strong>.
+                                    Utilisez notre outil pour trouver le CTO et envoyez une candidature spontanée ultra-ciblée !
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* === COMPANY LIST === */}
                 {!loading && !error && (
                     <motion.section
@@ -629,15 +648,12 @@ export default function JobDetailView() {
 
                                     {/* Opportunities - Green Cards */}
                                     <div className="mt-8">
-                                        <p className="text-xs uppercase tracking-widest text-zinc-400">Opportunités détectées</p>
+                                        <p className="text-xs uppercase tracking-widest text-zinc-400">📡 Signaux de recrutement tech</p>
                                         <div className="mt-3 space-y-3">
                                             {selectedCompany.jobs?.map((job, idx) => (
-                                                <a
+                                                <div
                                                     key={idx}
-                                                    href={job.url || job.apply_url || '#'}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="block rounded-2xl border border-emerald-400/20 bg-emerald-500/5 p-4 hover:bg-emerald-500/10 transition cursor-pointer"
+                                                    className="block rounded-2xl border border-emerald-400/20 bg-emerald-500/5 p-4 opacity-90"
                                                 >
                                                     <div className="flex items-center justify-between gap-3">
                                                         <div className="flex items-center gap-2">
@@ -655,8 +671,8 @@ export default function JobDetailView() {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-emerald-400/20 bg-emerald-500/10">
-                                                            <ChevronRight className="h-4 w-4" />
+                                                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-emerald-400/10 bg-emerald-500/5 text-emerald-500/50">
+                                                            <div className="h-2 w-2 rounded-full bg-emerald-500/50" />
                                                         </span>
                                                     </div>
                                                     <div className="mt-3">
@@ -675,7 +691,7 @@ export default function JobDetailView() {
                                                             ))}
                                                         </div>
                                                     )}
-                                                </a>
+                                                </div>
                                             ))}
 
                                             {(!selectedCompany.jobs || selectedCompany.jobs.length === 0) && (
