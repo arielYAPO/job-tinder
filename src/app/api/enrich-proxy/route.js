@@ -7,9 +7,9 @@ export const dynamic = 'force-dynamic';
 /**
  * Proxy for Gemini enrichment — THIS is the expensive call.
  * Rate limited to 3/day (each call = Gemini tokens).
- * Triggered only when user saves/updates their profile.
+ * Now accepts POST with company_names from matching results.
  */
-export async function GET(request) {
+export async function POST(request) {
     try {
         const supabase = await createClient();
 
@@ -30,18 +30,26 @@ export async function GET(request) {
             });
         }
 
-        // 3. FORWARD TO PYTHON BACKEND
-        const { searchParams } = new URL(request.url);
-        const limit = searchParams.get('limit') || '20';
-        const force = searchParams.get('force') || 'true';
+        // 3. PARSE BODY (company_names from matching results)
+        const body = await request.json().catch(() => ({}));
+        const companyNames = body.company_names || [];
+        const limit = body.limit || 10;
+        const force = body.force ?? true;
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
+        // 4. FORWARD TO PYTHON BACKEND (now POST)
         const backendResponse = await fetch(
-            `${apiUrl}/enrich/lazy-top50?limit=${limit}&force=${force}&user_id=${user.id}`,
+            `${apiUrl}/enrich/lazy-top50`,
             {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    company_names: companyNames,
+                    user_id: user.id,
+                    limit,
+                    force
+                })
             }
         );
 

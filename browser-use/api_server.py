@@ -1102,44 +1102,45 @@ class LazyEnrichResponse(BaseModel):
     details: List[dict] = []
 
 
-@app.get("/enrich/lazy-top50", response_model=LazyEnrichResponse)
-async def enrich_lazy_top50(
-    limit: int = 50,
-    dry_run: bool = False,
-    force: bool = False,
+class EnrichRequest(BaseModel):
+    company_names: List[str] = Field(default_factory=list, description="List of company names to enrich (from matching results)")
     user_id: Optional[str] = None
-):
+    limit: int = 10
+    force: bool = False
+    dry_run: bool = False
+
+
+@app.post("/enrich/lazy-top50", response_model=LazyEnrichResponse)
+async def enrich_lazy_top50(req: EnrichRequest):
     """
-    Lazy Enrichment Strategy - Top 50 Companies
+    Lazy Enrichment Strategy - OPTIMIZED
     
-    1. Groups all jobs by company_name
-    2. Calculates MAX(job.score) per company (not average)
-    3. Takes only Top 50 companies by score
-    4. Aggregates job context (titles + descriptions) per company
-    5. Calls Gemini once per company with the strategic prompt
-    6. Stores AI suggestions in jobs table (suggested_outreach_roles field)
+    Now accepts company_names from the matching step to avoid re-fetching 
+    and re-scoring all 2000+ jobs. Only fetches jobs for the matched companies.
     
-    Args:
-        user_id: Optional user ID to fetch profile from Supabase. If not provided, uses default values.
+    Falls back to the old behavior (full fetch + score) if company_names is empty.
     """
     try:
-        # Default profile - MUST match frontend JobDetailView.jsx defaults
-        user_skills_list = ["Python", "React", "Data"]  # Match frontend default
+        limit = req.limit
+        dry_run = req.dry_run
+        force = req.force
+        user_id = req.user_id
+        company_names = req.company_names
+
+        # Default profile
+        user_skills_list = ["Python", "React", "Data"]
         user_skills = ", ".join(user_skills_list)
-        user_objective = "Développeur Fullstack"  # Match frontend default
+        user_objective = "Développeur Fullstack"
         
         if user_id:
             print(f"📋 Fetching profile for user: {user_id}")
-            # Use Admin client to bypass RLS if available
             client_to_use = supabase_admin if supabase_admin else supabase
             
             profile_resp = client_to_use.table("profiles").select("*").eq("user_id", user_id).single().execute()
             if profile_resp.data:
                 profile = profile_resp.data
-                # Match frontend: uses skills array, and goal_type/desired_position for objective
                 user_skills_list = profile.get("skills") or ["Python", "React", "Data"]
                 user_skills = ", ".join(user_skills_list)
-                # Frontend uses: objective || desired_position || goal_type
                 user_objective = (
                     profile.get("desired_position") or 
                     profile.get("goal_type") or 
@@ -1148,81 +1149,85 @@ async def enrich_lazy_top50(
                 print(f"   → Skills: {user_skills[:50]}...")
                 print(f"   → Objective: {user_objective[:50]}...")
         
-        # Create user profile object for matching algorithm (using SimpleNamespace for attribute access)
-        from types import SimpleNamespace
-        user_profile_for_matching = SimpleNamespace(
-            skills=user_skills_list,
-            objectif=user_objective
-        )
+        print(f"\n🎯 Starting Lazy Enrichment (limit={limit}, dry_run={dry_run}, companies_provided={len(company_names)})")
         
-        print(f"\n🎯 Starting Lazy Enrichment (Top {limit} companies, dry_run={dry_run})")
-        
-        # Fetch all jobs with descriptions using pagination helper
-        jobs = fetch_all_jobs(supabase, require_desc=True)
-        
-        print(f"   Found {len(jobs)} jobs with descriptions")
-        
-        if not jobs:
-            return LazyEnrichResponse(
-                success=True,
-                companies_processed=0,
-                companies_enriched=0,
-                companies_failed=0,
-                dry_run=dry_run,
-                message="No jobs with descriptions found"
-            )
-        
-        # Step 1: Group jobs by company
-        companies_dict: Dict[str, dict] = {}
-        
-        for job in jobs:
-            company_name = job.get("company_name") or "Unknown"
+        # ==========================================
+        # OPTIMIZED PATH: company_names provided by matching
+        # ==========================================
+        if company_names:
+            print(f"   ⚡ Fast path: enriching {len(company_names)} pre-matched companies")
             
-            if company_name not in companies_dict:
-                companies_dict[company_name] = {
-                    "name": company_name,
-                    "jobs": [],
-                    "max_score": 0,
-                    "job_ids": [],
-                    "already_enriched": False
+            # Fetch jobs ONLY for these companies (not all 2000+)
+            companies_dict: Dict[str, dict] = {}
+            
+            for name in company_names[:limit]:
+                resp = supabase.table("jobs").select("*").eq("company_name", name).execute()
+                jobs_for_company = resp.data or []
+                
+                if not jobs_for_company:
+                    continue
+                
+                already_enriched = False
+                if not force:
+                    existing = jobs_for_company[0].get("suggested_outreach_roles") or []
+                    if existing:
+                        already_enriched = True
+                
+                if already_enriched:
+                    print(f"   ⏭️ {name} already enriched, skipping")
+                    continue
+                
+                companies_dict[name] = {
+                    "name": name,
+                    "jobs": jobs_for_company,
+                    "job_ids": [j.get("id") for j in jobs_for_company],
                 }
             
-            # Check if already enriched (has non-empty suggested_outreach_roles)
-            existing_suggestions = job.get("suggested_outreach_roles") or []
-            if existing_suggestions and not force:
-                companies_dict[company_name]["already_enriched"] = True
-            
-            companies_dict[company_name]["jobs"].append(job)
-            companies_dict[company_name]["job_ids"].append(job.get("id"))
-            
-            # Calculate REAL job score using the matching algorithm
-            match_result = compute_job_match_score(user_profile_for_matching, job, None)
-            if match_result:
-                job_score = match_result.get("score", 0)
-            else:
-                job_score = 0
-            
-            companies_dict[company_name]["max_score"] = max(
-                companies_dict[company_name]["max_score"],
-                job_score
+            top_companies = list(companies_dict.values())
+            print(f"   Processing {len(top_companies)} companies (skipped already enriched)")
+        
+        # ==========================================
+        # FALLBACK PATH: no company_names, old behavior
+        # ==========================================
+        else:
+            print(f"   🐌 Slow path: fetching all jobs and scoring (no company_names provided)")
+            from types import SimpleNamespace
+            user_profile_for_matching = SimpleNamespace(
+                skills=user_skills_list,
+                objectif=user_objective
             )
-        
-        print(f"   Grouped into {len(companies_dict)} unique companies")
-        
-        # Step 2: Sort by max_score and take top N
-        companies_list = sorted(
-            companies_dict.values(),
-            key=lambda x: x["max_score"],
-            reverse=True
-        )
-        
-        # Filter out already enriched companies (unless force=True)
-        if not force:
-            companies_list = [c for c in companies_list if not c["already_enriched"]]
-        
-        top_companies = companies_list[:limit]
-        
-        print(f"   Processing Top {len(top_companies)} companies")
+            
+            jobs = fetch_all_jobs(supabase, require_desc=True)
+            print(f"   Found {len(jobs)} jobs with descriptions")
+            
+            if not jobs:
+                return LazyEnrichResponse(
+                    success=True, companies_processed=0, companies_enriched=0,
+                    companies_failed=0, dry_run=dry_run, message="No jobs found"
+                )
+            
+            companies_dict: Dict[str, dict] = {}
+            for job in jobs:
+                cn = job.get("company_name") or "Unknown"
+                if cn not in companies_dict:
+                    companies_dict[cn] = {"name": cn, "jobs": [], "max_score": 0, "job_ids": [], "already_enriched": False}
+                
+                existing = job.get("suggested_outreach_roles") or []
+                if existing and not force:
+                    companies_dict[cn]["already_enriched"] = True
+                
+                companies_dict[cn]["jobs"].append(job)
+                companies_dict[cn]["job_ids"].append(job.get("id"))
+                
+                match_result = compute_job_match_score(user_profile_for_matching, job, None)
+                job_score = match_result.get("score", 0) if match_result else 0
+                companies_dict[cn]["max_score"] = max(companies_dict[cn]["max_score"], job_score)
+            
+            companies_list = sorted(companies_dict.values(), key=lambda x: x["max_score"], reverse=True)
+            if not force:
+                companies_list = [c for c in companies_list if not c["already_enriched"]]
+            top_companies = companies_list[:limit]
+            print(f"   Processing Top {len(top_companies)} companies")
         
         # Initialize Gemini model
         model = genai.GenerativeModel("gemini-2.5-flash-lite")

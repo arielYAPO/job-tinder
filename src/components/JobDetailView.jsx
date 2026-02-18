@@ -194,6 +194,8 @@ export default function JobDetailView() {
 
                 if (result.success && result.companies) {
                     setCompanies(result.companies);
+                    // Store company names for targeted enrichment later
+                    window.__matchedCompanyNames = result.companies.map(c => c.name);
                 } else {
                     setError('Aucun match trouvé');
                 }
@@ -294,7 +296,9 @@ export default function JobDetailView() {
             // But we'll limit to 10 for speed in this context.
 
             try {
-                const enrichResult = await triggerLazyEnrichment(currentUser.id);
+                // Pass matched company names to avoid re-fetching all 2000+ jobs
+                const companyNames = window.__matchedCompanyNames || [];
+                const enrichResult = await triggerLazyEnrichment(currentUser.id, companyNames);
                 if (enrichResult.rateLimited) {
                     setRateLimitMessage(enrichResult.message);
                     if (enrichResult.remaining !== undefined) {
@@ -319,6 +323,7 @@ export default function JobDetailView() {
 
             if (result.success && result.companies) {
                 setCompanies(result.companies);
+                window.__matchedCompanyNames = result.companies.map(c => c.name);
                 router.refresh(); // Tells Next.js to refresh server components/cache
             }
 

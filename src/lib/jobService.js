@@ -9,15 +9,21 @@
 
 /**
  * Trigger lazy enrichment of company data via Gemini.
- * Goes through /api/enrich-proxy (auth required, no separate limit).
+ * Goes through /api/enrich-proxy (auth required, rate limited).
+ * Now accepts companyNames to only enrich matched companies (faster).
  */
-export async function triggerLazyEnrichment(userId) {
+export async function triggerLazyEnrichment(userId, companyNames = []) {
     try {
-        const response = await fetch(`/api/enrich-proxy?limit=20&force=true`, {
-            method: 'GET',
+        const response = await fetch(`/api/enrich-proxy`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            body: JSON.stringify({
+                company_names: companyNames,
+                limit: 10,
+                force: true
+            })
         });
 
         const data = await response.json();

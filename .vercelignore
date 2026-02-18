@@ -1,0 +1,9 @@
+node_modules
+.next
+browser-use/venv
+browser-use/__pycache__
+.tmp
+.env
+.env.local
+*.log
+*.pyc
