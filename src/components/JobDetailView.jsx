@@ -654,6 +654,7 @@ export default function JobDetailView() {
                                     {/* Opportunities - Green Cards */}
                                     <div className="mt-8">
                                         <p className="text-xs uppercase tracking-widest text-zinc-400">📡 Signaux de recrutement tech</p>
+                                        <p className="mt-1 text-[11px] text-zinc-500">Cette entreprise recrute activement :</p>
                                         <div className="mt-3 space-y-3">
                                             {selectedCompany.jobs?.map((job, idx) => (
                                                 <div
@@ -682,6 +683,11 @@ export default function JobDetailView() {
                                                     </div>
                                                     <div className="mt-3">
                                                         <p className="text-lg font-semibold">{job.title}</p>
+                                                        {job.published_at && (
+                                                            <p className="mt-1 text-xs text-amber-400/80">
+                                                                📅 Publié le {new Date(job.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                            </p>
+                                                        )}
                                                         <p className="mt-1 text-sm text-zinc-300/80">
                                                             {job.location || selectedCompany.location || 'France'}
                                                         </p>
@@ -698,6 +704,10 @@ export default function JobDetailView() {
                                                     )}
                                                 </div>
                                             ))}
+                                            {/* Recruitment signal disclaimer */}
+                                            <p className="mt-2 text-[11px] text-zinc-500 italic leading-relaxed">
+                                                💡 Ces postes montrent une activité de recrutement récente. Ils peuvent être déjà pourvus.
+                                            </p>
 
                                             {(!selectedCompany.jobs || selectedCompany.jobs.length === 0) && (
                                                 <p className="text-sm text-zinc-500">Aucune opportunité listée</p>

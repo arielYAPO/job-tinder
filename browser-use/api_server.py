@@ -557,6 +557,8 @@ async def match_jobs_by_company(req: MatchRequest):
                 "score": match.get("score"),
                 "tag": "Offre Officielle",  # Default tag
                 "url": match.get("url"),
+                "published_at": match.get("published_at"),
+                "location": match.get("location"),
                 "matched_skills": match.get("matched_skills", []),
                 "match_confidence": match.get("match_confidence")
             })
