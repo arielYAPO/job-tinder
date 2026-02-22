@@ -21,7 +21,7 @@ export async function triggerLazyEnrichment(userId, companyNames = []) {
             },
             body: JSON.stringify({
                 company_names: companyNames,
-                limit: 10,
+                limit: 25,
                 force: true
             })
         });

@@ -31,7 +31,7 @@ load_dotenv(os.path.join(root_dir, ".env"))
 try:
     from supabase import create_client
     supabase_url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
     if supabase_url and supabase_key:
         supabase = create_client(supabase_url, supabase_key)

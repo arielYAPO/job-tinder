@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, Zap, User, Sparkles, Search, Mail } from 'lucide-react';
+import { X, ChevronRight, Zap, User, Sparkles, Search, Mail, Radio, Calendar } from 'lucide-react';
 import { createBrowserClient } from '@supabase/ssr';
 import { fetchMatchedCompanies, buildUserProfile, buildSearchPreferences, triggerLazyEnrichment } from '@/lib/jobService';
 
@@ -653,8 +653,25 @@ export default function JobDetailView() {
 
                                     {/* Opportunities - Green Cards */}
                                     <div className="mt-8">
-                                        <p className="text-xs uppercase tracking-widest text-zinc-400">📡 Signaux de recrutement tech</p>
-                                        <p className="mt-1 text-[11px] text-zinc-500">Cette entreprise recrute activement :</p>
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <p className="text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                                                    <Radio className="h-3.5 w-3.5 text-emerald-500/80" />
+                                                    Signaux de recrutement tech
+                                                </p>
+                                                <p className="mt-1 text-[11px] text-zinc-500">Cette entreprise recrute activement :</p>
+                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    document.getElementById('contact-generator')?.scrollIntoView({ behavior: 'smooth' });
+                                                }}
+                                                className="shrink-0 flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/50 px-2.5 py-1.5 text-[10px] uppercase tracking-wider text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                                            >
+                                                <Search className="h-3 w-3" />
+                                                Contacts ↓
+                                            </button>
+                                        </div>
                                         <div className="mt-3 space-y-3">
                                             {selectedCompany.jobs?.map((job, idx) => (
                                                 <div
@@ -684,8 +701,9 @@ export default function JobDetailView() {
                                                     <div className="mt-3">
                                                         <p className="text-lg font-semibold">{job.title}</p>
                                                         {job.published_at && (
-                                                            <p className="mt-1 text-xs text-amber-400/80">
-                                                                📅 Publié le {new Date(job.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                            <p className="mt-1.5 text-[11px] text-zinc-400 flex items-center gap-1.5">
+                                                                <Calendar className="h-3 w-3 text-zinc-500" />
+                                                                Publié le {new Date(job.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                                                             </p>
                                                         )}
                                                         <p className="mt-1 text-sm text-zinc-300/80">
