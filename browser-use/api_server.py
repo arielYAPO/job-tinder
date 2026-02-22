@@ -609,7 +609,7 @@ async def match_jobs_by_company(req: MatchRequest):
             success=True,
             total_companies=len(companies_list),
             total_jobs=len(matches),
-            companies=companies_list[:10]  # Limit to top 10 companies
+            companies=companies_list[:25]  # Limit to top 25 companies
         )
 
     except Exception as e:
