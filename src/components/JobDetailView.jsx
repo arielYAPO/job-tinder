@@ -283,35 +283,8 @@ export default function JobDetailView() {
             setIsProfileMandatory(false); // Enable closing after save
             setTimeout(() => setShowProfileModal(false), 1500); // Auto close after success if wanted, or let user close
 
-            // 2. Trigger AI Enrichment (Background / Parallel)
-            // We set a loading state for the UI but don't strictly block the user
+            // 2. Fetch immediate unscored matches first so UI updates instantly
             setIsEnriching(true);
-
-            // Fire enrichment but don't wait indefinitely if it's slow? 
-            // Actually, we want to wait to fetch the *new* enriched matches.
-            // But 20 companies * 2s = 40s is too long. 
-            // Strategy: Trigger it, let it run, and maybe user refreshes later.
-            // OR drastically reduce limit for immediate feedback? 
-            // For now, we await it to ensure QUALITY over speed, as user requested "perfect".
-            // But we'll limit to 10 for speed in this context.
-
-            try {
-                // Pass matched company names to avoid re-fetching all 2000+ jobs
-                const companyNames = window.__matchedCompanyNames || [];
-                const enrichResult = await triggerLazyEnrichment(currentUser.id, companyNames);
-                if (enrichResult.rateLimited) {
-                    setRateLimitMessage(enrichResult.message);
-                    if (enrichResult.remaining !== undefined) {
-                        setUsage(prev => ({ ...prev, searches: prev.maxSearches }));
-                    }
-                } else if (enrichResult.remaining !== undefined) {
-                    setUsage(prev => ({ ...prev, searches: prev.maxSearches - enrichResult.remaining }));
-                }
-            } catch (e) {
-                console.warn("Enrichment trigger warning:", e);
-            }
-
-            // 3. Re-fetch matches with new profile & new enrichment data
             const result = await fetchMatchedCompanies(
                 buildUserProfile({
                     skills: skillsArray,
@@ -324,10 +297,37 @@ export default function JobDetailView() {
             if (result.success && result.companies) {
                 setCompanies(result.companies);
                 window.__matchedCompanyNames = result.companies.map(c => c.name);
-                router.refresh(); // Tells Next.js to refresh server components/cache
+                router.refresh();
             }
 
-            setIsEnriching(false);
+            // 3. Trigger AI Enrichment (Background / Parallel)
+            // Fire enrichment in background so user doesn't wait
+            const companyNames = window.__matchedCompanyNames || [];
+            triggerLazyEnrichment(currentUser.id, companyNames).then(enrichResult => {
+                if (enrichResult && enrichResult.rateLimited) {
+                    setRateLimitMessage(enrichResult.message);
+                    if (enrichResult.remaining !== undefined) {
+                        setUsage(prev => ({ ...prev, searches: prev.maxSearches }));
+                    }
+                } else if (enrichResult && enrichResult.remaining !== undefined) {
+                    setUsage(prev => ({ ...prev, searches: prev.maxSearches - enrichResult.remaining }));
+                }
+
+                // Silent refresh once enriched
+                fetchMatchedCompanies(
+                    buildUserProfile({ skills: skillsArray, objective: editObjective, contract_type: editContractType }),
+                    buildSearchPreferences({})
+                ).then(res => {
+                    if (res.success && res.companies) {
+                        setCompanies(res.companies);
+                    }
+                });
+            }).catch(e => {
+                console.warn("Enrichment trigger warning:", e);
+            }).finally(() => {
+                setIsEnriching(false);
+            });
+
             setTimeout(() => setSaveSuccess(false), 3000);
 
         } catch (err) {
@@ -336,7 +336,6 @@ export default function JobDetailView() {
         } finally {
             setSaving(false);
             setLoading(false); // Hide main loader
-            setIsEnriching(false);
         }
     }
 

@@ -609,7 +609,7 @@ async def match_jobs_by_company(req: MatchRequest):
             success=True,
             total_companies=len(companies_list),
             total_jobs=len(matches),
-            companies=companies_list[:10]  # Top 10 (25 is too slow with Gemini enrichment)
+            companies=companies_list[:25]  # Top 25 (optimized with Tier 1 and force: false)
         )
 
     except Exception as e:
@@ -1319,9 +1319,9 @@ async def enrich_lazy_top50(req: EnrichRequest):
                     "status": "success"
                 })
                 
-                # Rate limiting: 5 second delay to stay under Gemini quota (15 req/min)
+                # Rate limiting: 0.5 second delay (Tier 1 limits allow much higher RPM)
                 import time
-                time.sleep(5)
+                time.sleep(0.5)
                 
             except Exception as e:
                 print(f"❌ {str(e)[:50]}")
