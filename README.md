@@ -18,11 +18,6 @@ AI-powered job matching platform built for the **Station F** startup ecosystem. 
 - Gemini classifies each job (tech vs non-tech, role labels, AI relevance) and generates **3 personalized outreach role suggestions** per company — tailored to junior/alternance profiles.
 - Results appear silently in the UI once ready, without blocking the user.
 
-### � AI CV & Cover Letter Generator
-- One-click generation of a **tailored, ATS-optimized CV** (JSON structure) using Gemini, based on your profile, experiences, education, projects, and the target job description.
-- Simultaneously generates a **professional cover letter in French**, following a structured 3-paragraph format with real candidate data — no fabricated information.
-- All generated content is saved to Supabase for future access.
-
 ### 📋 Job Description Simplifier
 - Converts dense job descriptions into a structured **TL;DR** (summary, missions, tech stack, requirements, soft skills, perks) via Gemini.
 - Results are cached in a `simplified_jobs` table to avoid redundant API calls.
