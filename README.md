@@ -2,7 +2,7 @@
 
 AI-powered job matching platform built for the **Station F** startup ecosystem. Matches your profile against 1000+ startup job postings using a custom scoring algorithm, then enriches your top matches with AI-generated outreach strategies.
 
-**Live at**: [scope-ai.vercel.app](https://scope-ai.vercel.app) *(or your domain)*
+**Live at**: [scope-ai.vercel.app](https://job-tinder-napx.vercel.app) *(or your domain)*
 
 ---
 
