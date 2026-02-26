@@ -62,3 +62,6 @@ __pycache__/
 # Backups and Large Files
 *.zip
 browser-use/venv/  
+
+# Playground and scratchpad scripts
+playground/

@@ -1,65 +1,115 @@
-# JobTinder 💼❤️
+# Scope 🎯
 
-The ultimate AI-powered job hunting platform for **StationF** startups. Find your perfect match using semantic search, automated enrichment, and personalized pitches.
+AI-powered job matching platform built for the **Station F** startup ecosystem. Matches your profile against 1000+ startup job postings using a custom scoring algorithm, then enriches your top matches with AI-generated outreach strategies.
 
-## 🚀 Features
+**Live at**: [scope-ai.vercel.app](https://scope-ai.vercel.app) *(or your domain)*
 
-### for Candidates
-- **Smart Matching**: Forget keyword search. Our AI analyzes your skills & objective to score every job (0-100%).
-- **Station F Exclusive**: Real-time aggregation of 1000+ startup jobs from the Station F ecosystem.
-- **Why It Matches**: Get an instant explanation of *why* a role fits you (and where you need to upskill).
-- **Personalized Pitch**: AI generates a custom "Why Me" hook for every single opportunity.
-- **Contact Finder (Coming Soon)**: Automatically find the hiring manager's email.
+---
 
-### for Productivity
-- **Match Dashboard**: See your top matches at a glance, ranked by compatibility.
-- **Auto-Enrichment**: Jobs are automatically analyzed in the background to add context and suggestions.
-- **One-Click Apply**: Direct links to apply on the company's site.
+## ✨ Features
+
+### 🔍 Smart Job Matching
+- Custom **scoring algorithm** (0–100%) that compares your skills, target role, and contract type against every job in the database.
+- Results grouped by company, ranked by compatibility score, with matched skills highlighted.
+- Freemium model with daily usage limits (3 AI enrichments/day, 5 contact lookups/day), tracked per user and auto-resetting.
+
+### 🤖 Background AI Enrichment
+- After matching, a **background process** sends your top 25 companies to **Google Gemini** for deep analysis.
+- Gemini classifies each job (tech vs non-tech, role labels, AI relevance) and generates **3 personalized outreach role suggestions** per company — tailored to junior/alternance profiles.
+- Results appear silently in the UI once ready, without blocking the user.
+
+### � AI CV & Cover Letter Generator
+- One-click generation of a **tailored, ATS-optimized CV** (JSON structure) using Gemini, based on your profile, experiences, education, projects, and the target job description.
+- Simultaneously generates a **professional cover letter in French**, following a structured 3-paragraph format with real candidate data — no fabricated information.
+- All generated content is saved to Supabase for future access.
+
+### 📋 Job Description Simplifier
+- Converts dense job descriptions into a structured **TL;DR** (summary, missions, tech stack, requirements, soft skills, perks) via Gemini.
+- Results are cached in a `simplified_jobs` table to avoid redundant API calls.
+
+### 👤 Contact Finder
+- Finds the **CTO or hiring manager** for any matched company using Serper (Google Search API) to locate LinkedIn profiles.
+- Generates **3 probable email formats** (firstname@domain, firstname.lastname@domain, etc.) based on the domain found in the database.
+- Results are cached in a `generated_contacts` table.
+
+### 📡 Data Pipeline
+- **Algolia Scraper**: Queries the Welcome to the Jungle / Station F Algolia index to fetch all startup job postings. Handles pagination, deduplication, and upserts to Supabase.
+- **La Bonne Alternance**: Integrated with the French government's apprenticeship API to surface additional alternance opportunities by location and ROME codes.
+
+---
 
 ## 🛠 Tech Stack
 
-- **Frontend**: Next.js 15 (App Router), Tailwind CSS, Framer Motion.
-- **Backend (AI)**: Python 3.12, FastAPI, `browser-use` (AI Agent Framework).
-- **Database**: Supabase (PostgreSQL + Auth).
-- **AI Engine**: Google Gemini 2.0 Flash.
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | Next.js 15 (App Router), React, Tailwind CSS, Framer Motion, shadcn/ui, Lucide Icons |
+| **Backend API** | Python 3.12, FastAPI, Pydantic, Uvicorn |
+| **AI** | Google Gemini (2.0 Flash) — enrichment, CV generation, job simplification |
+| **Database & Auth** | Supabase (PostgreSQL, Row-Level Security, Supabase Auth with SSR) |
+| **External APIs** | Algolia (job scraping), Serper (contact search), La Bonne Alternance (apprenticeship jobs) |
+| **Deployment** | Vercel (frontend), VPS (Python API) |
 
-## 📦 Installation
+---
 
-### 1. Prerequisites
+## 🏗 Architecture
+
+```
+┌─────────────────┐     Proxy Routes      ┌──────────────────┐
+│   Next.js App   │ ──────────────────────▶│  FastAPI (Python) │
+│   (Vercel)      │  /api/match-proxy      │  (VPS)           │
+│                 │  /api/enrich-proxy     │                  │
+│  - Auth check   │  /api/contact          │  - Match algo    │
+│  - Rate limit   │                        │  - Enrichment    │
+│  - Supabase SSR │                        │  - Scraping      │
+└────────┬────────┘                        └────────┬─────────┘
+         │                                          │
+         └──────────────┐  ┌────────────────────────┘
+                        ▼  ▼
+                  ┌──────────────┐
+                  │   Supabase   │
+                  │  PostgreSQL  │
+                  │  + Auth      │
+                  │  + RLS       │
+                  └──────────────┘
+```
+
+**Key design decisions:**
+1. **Proxy pattern**: The frontend never calls the Python API directly. All requests go through Next.js API routes (`/api/match-proxy`, `/api/enrich-proxy`, `/api/contact`) which enforce authentication and rate limiting server-side.
+2. **Non-blocking enrichment**: Matching returns instantly (CPU-only scoring). AI enrichment runs in the background and silently refreshes the UI when done.
+3. **Freemium rate limiting**: Usage counters stored in the `profiles` table with daily auto-reset — no Redis needed.
+
+---
+
+## 📦 Setup
+
+### Prerequisites
 - Node.js 20+
 - Python 3.12+
-- Supabase Project (with `jobs` and `profiles` tables).
-- Google Gemini API Key.
+- Supabase project (with Auth and database configured)
+- Google Gemini API key
 
-### 2. Frontend Setup
+### Frontend
 ```bash
-# Install dependencies
 npm install
-
-# Run development server
 npm run dev
 ```
-OPEN: `http://localhost:3000`
+→ `http://localhost:3000`
 
-### 3. Backend Setup (The Brain)
-The python backend handles scraping, matching, and enrichment.
-
+### Python Backend
 ```bash
 cd browser-use
 
-# Create virtual env
+# Create virtual environment
 python -m venv venv
-# Activate:
 # Windows: .\venv\Scripts\activate
 # Mac/Linux: source venv/bin/activate
 
-# Install requirements
 pip install -r requirements.txt
-
-# Run server
 python api_server.py
 ```
-API DOCS: `http://localhost:8000/docs`
+→ API docs at `http://localhost:8000/docs`
+
+---
 
 ## 🔑 Environment Variables
 
@@ -67,26 +117,23 @@ API DOCS: `http://localhost:8000/docs`
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+GEMINI_API_KEY=your_gemini_api_key
+SERPER_API_KEY=your_serper_api_key
+LBA_API_TOKEN=your_labonnealternance_token
 ```
 
 ### Backend (`browser-use/.env`)
-Create this file in the `browser-use` folder.
-
 ```env
-# Supabase Configuration
 SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_DIRECT_FROM_DASHBOARD  <-- CRITICAL for AI Enrichment
-
-# AI Provider
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 GOOGLE_API_KEY=your_gemini_api_key
 ```
-> **Note**: `SUPABASE_SERVICE_ROLE_KEY` is required for the backend to bypass Row Level Security (RLS) when enriching user profiles automatically.
 
-## 🤝 Contributing
-1. Fork the repo.
-2. Create a feature branch.
-3. Submit a PR.
+> **Note**: `SUPABASE_SERVICE_ROLE_KEY` is required for the backend to bypass RLS when performing background updates (AI enrichments, job catalog updates).
+
+---
 
 ## 📄 License
 MIT
